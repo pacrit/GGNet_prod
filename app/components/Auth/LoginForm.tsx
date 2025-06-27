@@ -1,0 +1,90 @@
+"use client"
+
+import type React from "react"
+import { useState } from "react"
+import { useAuth } from "../../contexts/AuthContext"
+
+interface LoginFormProps {
+  onToggleForm: () => void
+}
+
+export default function LoginForm({ onToggleForm }: LoginFormProps) {
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const { login } = useAuth()
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+
+    // Validações básicas
+    if (!email.trim() || !password) {
+      setError("Email e senha são obrigatórios")
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Email inválido")
+      return
+    }
+
+    try {
+      setError("")
+      setLoading(true)
+      await login(email, password)
+    } catch (error: any) {
+      setError(error.message || "Erro ao fazer login")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="auth-form">
+      <h2>Login</h2>
+      {error && <div className="error-message">{error}</div>}
+
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loading}
+            placeholder="seu@email.com"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="password">Senha</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading}
+            placeholder="Sua senha"
+            minLength={6}
+          />
+        </div>
+
+        <button type="submit" disabled={loading} className="btn-primary">
+          {loading ? "Entrando..." : "Entrar"}
+        </button>
+      </form>
+
+      <p className="toggle-form">
+        Não tem uma conta?
+        <button onClick={onToggleForm} className="link-button" type="button" disabled={loading}>
+          Cadastre-se
+        </button>
+      </p>
+    </div>
+  )
+}
