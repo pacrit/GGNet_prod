@@ -68,7 +68,7 @@ export default function Dashboard({ onOpenChat }: DashboardProps) {
             <p>Seja o primeiro a se conectar!</p>
           </div>
         ) : (
-          users.map((user) => <UserCard key={user.id} user={user} onOpenChat={(id, name) => onOpenChat(id, name)} />)
+          users && users.map((user) => <UserCard key={user.id} user={user} onOpenChat={(id, name) => onOpenChat(id, name)} />)
         )}
       </div>
     </div>

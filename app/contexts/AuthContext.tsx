@@ -84,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const makeAuthRequest = async (url: string, data: any) => {
     try {
       console.log("Fazendo requisição para:", url, "com dados:", { ...data, password: "***" })
+      console.log('Data: ', data)
 
       const response = await fetch(url, {
         method: "POST",
