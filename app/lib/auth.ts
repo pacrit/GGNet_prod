@@ -7,7 +7,7 @@ export interface JWTPayload {
   exp?: number
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || "ggnetworking-dev-secret-key-2024-change-in-production"
+const JWT_SECRET = process.env.JWT_SECRET
 
 // Função simples para criar JWT
 export function generateToken(payload: JWTPayload): string {

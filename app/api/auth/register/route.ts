@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     try {
       console.log("🔄 Fazendo hash da senha...")
 
-      const JWT_SECRET = process.env.JWT_SECRET || "ggnetworking-dev-secret-key-2024-change-in-production"
+      const JWT_SECRET = process.env.JWT_SECRET 
       const encoder = new TextEncoder()
       const data = encoder.encode(password + JWT_SECRET + "salt")
 
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         exp: now + 7 * 24 * 60 * 60, // 7 dias
       }
 
-      const JWT_SECRET = process.env.JWT_SECRET || "ggnetworking-dev-secret-key-2024-change-in-production"
+      const JWT_SECRET = process.env.JWT_SECRET 
       const encodedHeader = btoa(JSON.stringify(header)).replace(/=/g, "")
       const encodedPayload = btoa(JSON.stringify(payload)).replace(/=/g, "")
       const signature = btoa(`${encodedHeader}.${encodedPayload}.${JWT_SECRET}`).replace(/=/g, "")

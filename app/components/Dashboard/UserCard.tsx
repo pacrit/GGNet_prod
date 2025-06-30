@@ -3,9 +3,9 @@
 interface UserData {
   id: number
   email: string
-  display_name: string
+  displayName: string
   avatar_url?: string
-  created_at: string
+  createdAt: string
 }
 
 interface UserCardProps {
@@ -15,7 +15,7 @@ interface UserCardProps {
 
 export default function UserCard({ user, onOpenChat }: UserCardProps) {
   const handleStartChat = () => {
-    onOpenChat(user.id, user.display_name)
+    onOpenChat(user.id, user.displayName)
   }
 
   const formatDate = (dateString: string) => {
@@ -26,16 +26,16 @@ export default function UserCard({ user, onOpenChat }: UserCardProps) {
     <div className="user-card">
       <div className="user-avatar">
         {user.avatar_url ? (
-          <img src={user.avatar_url || "/placeholder.svg"} alt={user.display_name} />
+          <img src={user.avatar_url || "/placeholder.svg"} alt={user.displayName} />
         ) : (
-          <div className="avatar-placeholder">{user.display_name.charAt(0).toUpperCase()}</div>
+          <div className="avatar-placeholder">{user.displayName.charAt(0).toUpperCase()}</div>
         )}
       </div>
 
       <div className="user-info">
-        <h3>{user.display_name}</h3>
+        <h3>{user.displayName}</h3>
         <p className="user-email">{user.email}</p>
-        <p className="user-joined">Membro desde {formatDate(user.created_at)}</p>
+        <p className="user-joined">Membro desde {formatDate(user.createdAt)}</p>
       </div>
 
       <div className="user-actions">

@@ -3,11 +3,14 @@
 import { useState } from "react"
 import { AuthProvider, useAuth } from "./contexts/AuthContext"
 import AuthContainer from "./components/Auth/AuthContainer"
+import Header from "./components/Navigation/Header"
+import Feed from "./components/Feed/Feed"
 import Dashboard from "./components/Dashboard/Dashboard"
 import ChatDrawer from "./components/Chat/ChatDrawer"
 
 function AppContent() {
-  const { currentUser, logout } = useAuth()
+  const { currentUser } = useAuth()
+  const [currentPage, setCurrentPage] = useState<"feed" | "friends">("feed")
   const [chatDrawer, setChatDrawer] = useState({
     isOpen: false,
     recipientId: null as number | null,
@@ -36,21 +39,9 @@ function AppContent() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <div className="header-content">
-          <h1>GG Networking</h1>
-          <div className="user-info">
-            <span>Olá, {currentUser.displayName}</span>
-            <button onClick={logout} className="logout-btn">
-              Sair
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header onNavigate={setCurrentPage} currentPage={currentPage} />
 
-      <main className="app-main">
-        <Dashboard onOpenChat={openChat} />
-      </main>
+      <main className="app-main">{currentPage === "feed" ? <Feed /> : <Dashboard onOpenChat={openChat} />}</main>
 
       <ChatDrawer
         isOpen={chatDrawer.isOpen}
