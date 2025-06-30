@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Validações básicas
-    const { email, password, displayName } = body
-
+    const { email, password, displayName, avatarUrl, avatar_url } = body
+    const avatar = avatarUrl || avatar_url || null
     if (!email || !password || !displayName) {
       console.error("❌ Campos obrigatórios faltando")
       return NextResponse.json({ error: "Email, senha e nome são obrigatórios" }, { status: 400 })
@@ -82,8 +82,8 @@ export async function POST(request: NextRequest) {
     try {
       console.log("🔄 Criando usuário no banco...")
       const result = await sql`
-        INSERT INTO users (email, password_hash, display_name, created_at, updated_at)
-        VALUES (${email}, ${hashedPassword}, ${displayName}, NOW(), NOW())
+        INSERT INTO users (email, password_hash, display_name, avatar_url, created_at, updated_at)
+        VALUES (${email}, ${hashedPassword}, ${displayName}, ${avatar}, NOW(), NOW())
         RETURNING id, email, display_name, created_at
       `
       newUser = result[0]
@@ -128,6 +128,7 @@ export async function POST(request: NextRequest) {
         id: newUser.id,
         email: newUser.email,
         displayName: newUser.display_name,
+        avatarUrl: newUser.avatar_url,
       },
       token,
     })
