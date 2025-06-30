@@ -1,85 +1,137 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { neon } from "@neondatabase/serverless"
+
+const sql = neon(process.env.DATABASE_URL!)
+
+// Função para verificar token JWT
+function verifyToken(token: string) {
+  try {
+    const parts = token.split(".")
+    if (parts.length !== 3) return null
+
+    const payload = JSON.parse(atob(parts[1]))
+    if (payload.exp < Math.floor(Date.now() / 1000)) return null
+
+    return payload
+  } catch {
+    return null
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
-    // Verificar token de autorização
-    const authHeader = request.headers.get("authorization")
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Token de autorização necessário" }, { status: 401 })
+    const token = request.headers.get("authorization")?.replace("Bearer ", "")
+    if (!token) {
+      return NextResponse.json({ error: "Token necessário" }, { status: 401 })
     }
 
-    const token = authHeader.substring(7)
-
-    // Verificar token (versão simplificada)
-    try {
-      const parts = token.split(".")
-      if (parts.length !== 3) {
-        return NextResponse.json({ error: "Token inválido" }, { status: 401 })
-      }
-
-      const payload = JSON.parse(atob(parts[1]))
-      if (!payload.userId || payload.exp < Math.floor(Date.now() / 1000)) {
-        return NextResponse.json({ error: "Token expirado" }, { status: 401 })
-      }
-    } catch (error) {
+    const payload = verifyToken(token)
+    if (!payload) {
       return NextResponse.json({ error: "Token inválido" }, { status: 401 })
     }
 
-    // Por enquanto, retornar mensagens vazias
-    return NextResponse.json({
-      messages: [],
-    })
+    const { searchParams } = new URL(request.url)
+    const recipientId = searchParams.get("recipientId")
+
+    if (!recipientId) {
+      return NextResponse.json({ error: "ID do destinatário necessário" }, { status: 400 })
+    }
+
+    // Buscar ou criar chat
+    const chat = await sql`
+      SELECT id FROM chats 
+      WHERE (participant_1_id = ${payload.userId} AND participant_2_id = ${recipientId})
+         OR (participant_1_id = ${recipientId} AND participant_2_id = ${payload.userId})
+    `
+
+    let chatId: number
+
+    if (chat.length === 0) {
+      // Criar novo chat
+      const newChat = await sql`
+        INSERT INTO chats (participant_1_id, participant_2_id)
+        VALUES (${Math.min(payload.userId, Number.parseInt(recipientId))}, ${Math.max(payload.userId, Number.parseInt(recipientId))})
+        RETURNING id
+      `
+      chatId = newChat[0].id
+    } else {
+      chatId = chat[0].id
+    }
+
+    // Buscar mensagens do chat
+    const messages = await sql`
+      SELECT 
+        m.id,
+        m.chat_id,
+        m.sender_id,
+        m.content,
+        m.created_at,
+        u.display_name as sender_name
+      FROM messages m
+      JOIN users u ON m.sender_id = u.id
+      WHERE m.chat_id = ${chatId}
+      ORDER BY m.created_at ASC
+    `
+
+    return NextResponse.json({ messages })
   } catch (error) {
-    console.error("❌ Erro geral:", error)
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+    console.error("Erro ao buscar mensagens:", error)
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Verificar token de autorização
-    const authHeader = request.headers.get("authorization")
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Token de autorização necessário" }, { status: 401 })
+    const token = request.headers.get("authorization")?.replace("Bearer ", "")
+    if (!token) {
+      return NextResponse.json({ error: "Token necessário" }, { status: 401 })
     }
 
-    const token = authHeader.substring(7)
-
-    // Verificar token (versão simplificada)
-    let userId
-    try {
-      const parts = token.split(".")
-      if (parts.length !== 3) {
-        return NextResponse.json({ error: "Token inválido" }, { status: 401 })
-      }
-
-      const payload = JSON.parse(atob(parts[1]))
-      if (!payload.userId || payload.exp < Math.floor(Date.now() / 1000)) {
-        return NextResponse.json({ error: "Token expirado" }, { status: 401 })
-      }
-      userId = payload.userId
-    } catch (error) {
+    const payload = verifyToken(token)
+    if (!payload) {
       return NextResponse.json({ error: "Token inválido" }, { status: 401 })
     }
 
-    const body = await request.json()
-    const { content, recipientId } = body
+    const { recipientId, content } = await request.json()
 
-    if (!content || !recipientId) {
-      return NextResponse.json({ error: "Conteúdo e destinatário são obrigatórios" }, { status: 400 })
+    if (!recipientId || !content?.trim()) {
+      return NextResponse.json({ error: "Destinatário e conteúdo são obrigatórios" }, { status: 400 })
     }
 
-    // Por enquanto, apenas retornar sucesso
+    // Buscar ou criar chat
+    const chat = await sql`
+      SELECT id FROM chats 
+      WHERE (participant_1_id = ${payload.userId} AND participant_2_id = ${recipientId})
+         OR (participant_1_id = ${recipientId} AND participant_2_id = ${payload.userId})
+    `
+
+    let chatId: number
+
+    if (chat.length === 0) {
+      // Criar novo chat
+      const newChat = await sql`
+        INSERT INTO chats (participant_1_id, participant_2_id)
+        VALUES (${Math.min(payload.userId, Number.parseInt(recipientId))}, ${Math.max(payload.userId, Number.parseInt(recipientId))})
+        RETURNING id
+      `
+      chatId = newChat[0].id
+    } else {
+      chatId = chat[0].id
+    }
+
+    // Inserir mensagem
+    const newMessage = await sql`
+      INSERT INTO messages (chat_id, sender_id, content)
+      VALUES (${chatId}, ${payload.userId}, ${content.trim()})
+      RETURNING id, chat_id, sender_id, content, created_at
+    `
+
     return NextResponse.json({
-      message: "Mensagem enviada com sucesso",
-      id: Date.now(),
-      content,
-      senderId: userId,
-      recipientId,
-      createdAt: new Date().toISOString(),
+      ...newMessage[0],
+      sender_name: payload.displayName,
     })
   } catch (error) {
-    console.error("❌ Erro geral:", error)
-    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+    console.error("Erro ao enviar mensagem:", error)
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 })
   }
 }
