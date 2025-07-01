@@ -34,7 +34,6 @@ export default function UserCard({ user, onOpenChat }: UserCardProps) {
 
       <div className="user-info">
         <h3>{user.displayName}</h3>
-        <p className="user-email">{user.email}</p>
         <p className="user-joined">Membro desde {formatDate(user.createdAt)}</p>
       </div>
 

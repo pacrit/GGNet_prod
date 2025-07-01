@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useAuth } from "../../contexts/AuthContext"
+import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface HeaderProps {
-  onNavigate: (page: "feed" | "friends") => void
-  currentPage: "feed" | "friends"
+  onNavigate: (page: "feed" | "friends") => void;
+  currentPage: "feed" | "friends";
 }
 
 export default function Header({ onNavigate, currentPage }: HeaderProps) {
-  const { currentUser, logout } = useAuth()
-  const [showUserMenu, setShowUserMenu] = useState(false)
+  const { currentUser, logout } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const handleLogout = () => {
-    logout()
-    setShowUserMenu(false)
-  }
+    logout();
+    setShowUserMenu(false);
+  };
 
   return (
     <header className="app-header">
@@ -25,7 +25,10 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
         </div>
 
         <nav className="header-nav">
-          <button onClick={() => onNavigate("feed")} className={`nav-btn ${currentPage === "feed" ? "active" : ""}`}>
+          <button
+            onClick={() => onNavigate("feed")}
+            className={`nav-btn ${currentPage === "feed" ? "active" : ""}`}
+          >
             <span className="nav-icon">🏠</span>
             <span className="nav-text">Feed</span>
           </button>
@@ -41,12 +44,22 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
 
         <div className="header-right">
           <div className="user-menu">
-            <button onClick={() => setShowUserMenu(!showUserMenu)} className="user-menu-btn">
+            <button
+              onClick={() => {
+                setShowUserMenu(!showUserMenu), console.log(currentUser);
+              }}
+              className="user-menu-btn"
+            >
               <div className="user-avatar-small">
                 {currentUser?.avatarUrl ? (
-                  <img src={currentUser.avatarUrl || "/placeholder.svg"} alt={currentUser.displayName} />
+                  <img
+                    src={currentUser.avatarUrl || "/placeholder.svg"}
+                    alt={currentUser.displayName}
+                  />
                 ) : (
-                  <div className="avatar-placeholder">{currentUser?.displayName?.charAt(0).toUpperCase()}</div>
+                  <div className="avatar-placeholder">
+                    {currentUser?.displayName?.charAt(0).toUpperCase()}
+                  </div>
                 )}
               </div>
               <span className="user-name">{currentUser?.displayName}</span>
@@ -58,9 +71,14 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
                 <div className="dropdown-header">
                   <div className="user-avatar">
                     {currentUser?.avatarUrl ? (
-                      <img src={currentUser.avatarUrl || "/placeholder.svg"} alt={currentUser.displayName} />
+                      <img
+                        src={currentUser.avatarUrl || "/placeholder.svg"}
+                        alt={currentUser.displayName}
+                      />
                     ) : (
-                      <div className="avatar-placeholder">{currentUser?.displayName?.charAt(0).toUpperCase()}</div>
+                      <div className="avatar-placeholder">
+                        {currentUser?.displayName?.charAt(0).toUpperCase()}
+                      </div>
                     )}
                   </div>
                   <div className="user-details">
@@ -88,7 +106,10 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
 
                 <div className="dropdown-divider"></div>
 
-                <button onClick={handleLogout} className="dropdown-btn logout-btn">
+                <button
+                  onClick={handleLogout}
+                  className="dropdown-btn logout-btn"
+                >
                   <span className="btn-icon">🚪</span>
                   Sair
                 </button>
@@ -98,7 +119,12 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
         </div>
       </div>
 
-      {showUserMenu && <div className="dropdown-overlay" onClick={() => setShowUserMenu(false)}></div>}
+      {showUserMenu && (
+        <div
+          className="dropdown-overlay"
+          onClick={() => setShowUserMenu(false)}
+        ></div>
+      )}
     </header>
-  )
+  );
 }

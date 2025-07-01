@@ -15,6 +15,9 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+
   const maxLength = 500
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,6 +37,11 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
     setError("")
 
     try {
+      let imageUrl = ""
+      if (imageFile) {
+        imageUrl = await uploadToCloudinary(imageFile)
+      }
+
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
@@ -42,6 +50,7 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
         },
         body: JSON.stringify({
           content: content.trim(),
+          image_url: imageUrl, // envie a url da imagem
         }),
       })
 
@@ -59,6 +68,19 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  async function uploadToCloudinary(file: File) {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("upload_preset", "preset_publico") // mesmo preset do cadastro
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: "POST", body: formData }
+    )
+    const data = await res.json()
+    return data.secure_url
   }
 
   return (
@@ -85,6 +107,34 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
           rows={3}
           disabled={isSubmitting}
         />
+
+        <div className="form-group">
+          <label htmlFor="post-image">Imagem (opcional)</label>
+          <div className="avatar-upload-wrapper">
+            <input
+              type="file"
+              id="post-image"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null
+                setImageFile(file)
+                setImagePreview(file ? URL.createObjectURL(file) : null)
+              }}
+              disabled={isSubmitting}
+            />
+            <label htmlFor="post-image" className="avatar-upload-label">
+              {imagePreview ? (
+                <span>
+                  <img src={imagePreview} alt="Prévia da imagem" className="avatar-preview" />
+                  Trocar imagem
+                </span>
+              ) : (
+                <span>Adicionar imagem</span>
+              )}
+            </label>
+          </div>
+        </div>
 
         <div className="post-actions">
           <div className="char-counter">

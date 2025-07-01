@@ -1,55 +1,63 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 
 interface Post {
-  id: number
-  content: string
-  user_id: number
-  created_at: string
-  user_name: string
-  user_avatar?: string
-  likes_count: number
-  user_liked: boolean
+  id: number;
+  content: string;
+  image_url?: string;
+  user_id: number;
+  created_at: string;
+  user_name: string;
+  user_avatar?: string;
+  likes_count: number;
+  user_liked: boolean;
 }
 
 interface PostCardProps {
-  post: Post
-  onLikeToggle: (postId: number) => void
+  post: Post;
+  onLikeToggle: (postId: number) => void;
 }
 
 export default function PostCard({ post, onLikeToggle }: PostCardProps) {
-  const [isLiking, setIsLiking] = useState(false)
+  const [isLiking, setIsLiking] = useState(false);
 
   const handleLike = async () => {
-    if (isLiking) return
+    if (isLiking) return;
 
-    setIsLiking(true)
-    await onLikeToggle(post.id)
-    setIsLiking(false)
-  }
+    setIsLiking(true);
+    await onLikeToggle(post.id);
+    setIsLiking(false);
+  };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor(
+      (now.getTime() - date.getTime()) / (1000 * 60)
+    );
 
-    if (diffInMinutes < 1) return "Agora"
-    if (diffInMinutes < 60) return `${diffInMinutes}m`
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`
-    if (diffInMinutes < 10080) return `${Math.floor(diffInMinutes / 1440)}d`
+    if (diffInMinutes < 1) return "Agora";
+    if (diffInMinutes < 60) return `${diffInMinutes}m`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`;
+    if (diffInMinutes < 10080) return `${Math.floor(diffInMinutes / 1440)}d`;
 
-    return date.toLocaleDateString("pt-BR")
-  }
+    return date.toLocaleDateString("pt-BR");
+  };
 
   return (
     <div className="post-card">
       <div className="post-header">
         <div className="post-user-avatar">
           {post.user_avatar ? (
-            <img src={post.user_avatar || "/placeholder.svg"} alt={post.user_name} />
+            <img
+              src={post.user_avatar || "/placeholder.svg"}
+              alt={post.user_name}
+            />
           ) : (
-            <div className="avatar-placeholder">{post.user_name?.charAt(0).toUpperCase()}</div>
+            <div className="avatar-placeholder">
+              {post.user_name?.charAt(0).toUpperCase()}
+            </div>
           )}
         </div>
         <div className="post-user-info">
@@ -60,12 +68,27 @@ export default function PostCard({ post, onLikeToggle }: PostCardProps) {
 
       <div className="post-content">
         <p>{post.content}</p>
+        {post.image_url && (
+          <img
+            src={post.image_url}
+            alt="Imagem do post"
+            className="post-image"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "320px",
+              borderRadius: "12px",
+              marginTop: "12px",
+              objectFit: "cover",
+            }}
+          />
+        )}
       </div>
 
       <div className="post-stats">
         {post.likes_count > 0 && (
           <span className="likes-count">
-            ❤️ {post.likes_count} {post.likes_count === 1 ? "curtida" : "curtidas"}
+            ❤️ {post.likes_count}{" "}
+            {post.likes_count === 1 ? "curtida" : "curtidas"}
           </span>
         )}
       </div>
@@ -77,19 +100,16 @@ export default function PostCard({ post, onLikeToggle }: PostCardProps) {
           className={`action-btn like-btn ${post.user_liked ? "liked" : ""}`}
         >
           <span className="action-icon">{post.user_liked ? "❤️" : "🤍"}</span>
-          <span className="action-text">{isLiking ? "..." : post.user_liked ? "Curtido" : "Curtir"}</span>
+          <span className="action-text">
+            {isLiking ? "..." : post.user_liked ? "Curtido" : "Curtir"}
+          </span>
         </button>
 
         <button className="action-btn comment-btn">
           <span className="action-icon">💬</span>
           <span className="action-text">Comentar</span>
         </button>
-
-        <button className="action-btn share-btn">
-          <span className="action-icon">📤</span>
-          <span className="action-text">Compartilhar</span>
-        </button>
       </div>
     </div>
-  )
+  );
 }

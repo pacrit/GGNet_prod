@@ -4,7 +4,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log("🚀 Iniciando processo de login...")
 
-    // 1. Parse do JSON
+    // Parse do JSON
     let body
     try {
       body = await request.json()
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "JSON inválido" }, { status: 400 })
     }
 
-    // 2. Validações básicas
+    // Validações básicas
     const { email, password } = body
 
     if (!email || !password) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     console.log("✅ Validações básicas passaram")
 
-    // 3. Conectar ao banco
+    // Conectar ao banco
     let sql
     try {
       console.log("🔄 Conectando ao banco...")
@@ -36,12 +36,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
     }
 
-    // 4. Buscar usuário
+    // Buscar usuário
     let user
     try {
       console.log("🔄 Buscando usuário...")
       const users = await sql`
-        SELECT id, email, password_hash, display_name FROM users WHERE email = ${email}
+        SELECT id, email, password_hash, display_name, avatar_url FROM users WHERE email = ${email}
       `
       console.log("✅ Consulta executada, usuários encontrados:", users.length)
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
     }
 
-    // 5. Verificar senha
+    // Verificar senha
     try {
       console.log("🔄 Verificando senha...")
 
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
     }
 
-    // 6. Gerar token JWT
+    // Gerar token JWT
     let token
     try {
       console.log("🔄 Gerando token...")
@@ -114,6 +114,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         displayName: user.display_name,
+        avatarUrl: user.avatar_url || null,
       },
       token,
     })

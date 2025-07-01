@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
       SELECT 
         p.id,
         p.content,
+        p.image_url,
         p.user_id,
         p.created_at,
         u.display_name as user_name,
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Token inválido" }, { status: 401 })
     }
 
-    const { content } = await request.json()
+    const { content, image_url } = await request.json()
 
     if (!content || !content.trim()) {
       return NextResponse.json({ error: "Conteúdo é obrigatório" }, { status: 400 })
@@ -99,8 +100,8 @@ export async function POST(request: NextRequest) {
 
     // Criar o post
     const newPost = await sql`
-      INSERT INTO posts (content, user_id, created_at)
-      VALUES (${content.trim()}, ${userId}, NOW())
+      INSERT INTO posts (content, image_url, user_id, created_at)
+      VALUES (${content.trim()}, ${image_url}, ${userId}, NOW())
       RETURNING id, content, user_id, created_at
     `
 
@@ -114,6 +115,7 @@ export async function POST(request: NextRequest) {
     const postWithUser = {
       id: newPost[0].id,
       content: newPost[0].content,
+      image_url: image_url || null, // Se não houver imagem, será null
       user_id: newPost[0].user_id,
       created_at: newPost[0].created_at,
       user_name: user[0].display_name,
