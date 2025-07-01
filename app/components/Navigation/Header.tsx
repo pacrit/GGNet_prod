@@ -90,7 +90,13 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
                 <div className="dropdown-divider"></div>
 
                 <div className="dropdown-actions">
-                  <button className="dropdown-btn">
+                  <button
+                    className="dropdown-btn"
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      window.location.href = "/profile";
+                    }}
+                  >
                     <span className="btn-icon">👤</span>
                     Perfil
                   </button>

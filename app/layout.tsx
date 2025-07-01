@@ -5,7 +5,7 @@ import "./globals.css"
 export const metadata: Metadata = {
   title: "GG Networking",
   description: "Conecte-se com profissionais da sua área",
-    generator: 'v0.dev'
+    generator: ':)'
 }
 
 export default function RootLayout({

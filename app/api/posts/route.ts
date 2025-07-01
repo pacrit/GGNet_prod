@@ -53,14 +53,48 @@ export async function GET(request: NextRequest) {
       LIMIT 50
     `
 
-    console.log(`✅ ${posts.length} posts encontrados`)
+    // Buscar todos os comentários desses posts de uma vez
+    const postIds = posts.map((p) => p.id)
+    let comments: any[] = []
+    if (postIds.length > 0) {
+      comments = await sql`
+        SELECT 
+          c.id,
+          c.post_id,
+          c.user_id,
+          c.content,
+          c.created_at,
+          u.display_name as user_name,
+          u.avatar_url as user_avatar
+        FROM post_comments c
+        JOIN users u ON c.user_id = u.id
+        WHERE c.post_id = ANY(${postIds})
+        ORDER BY c.created_at ASC
+      `
+    }
 
+    // Agrupar comentários por post_id
+    const commentsByPost: Record<number, any[]> = {}
+    for (const comment of comments) {
+      if (!commentsByPost[comment.post_id]) commentsByPost[comment.post_id] = []
+      commentsByPost[comment.post_id].push({
+        id: comment.id,
+        user_id: comment.user_id,
+        user_name: comment.user_name,
+        user_avatar: comment.user_avatar,
+        content: comment.content,
+        created_at: comment.created_at,
+      })
+    }
+
+    // Montar resposta incluindo os comentários
     return NextResponse.json({
       success: true,
       posts: posts.map((post) => ({
         ...post,
         likes_count: Number.parseInt(post.likes_count.toString()),
         user_liked: post.user_liked,
+        comments: commentsByPost[post.id] || [],
       })),
     })
   } catch (error) {
