@@ -54,42 +54,19 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Token expirado" }, { status: 401 });
       }
       const currentUserId = payload.userId;
-      // PEGAR O PARÂMETRO DE BUSCA
-      const search = request.nextUrl.searchParams.get("search")?.trim();
-
-      // Defina o tipo esperado para os usuários
-      type UserDb = {
-        id: number;
-        email: string;
-        display_name: string;
-        avatar_url: string | null;
-        created_at: string;
-      };
-
-      let users: UserDb[];
-
-      if (search && search.length > 1) {
-        const result = await sql`
-          SELECT id, email, display_name, avatar_url, created_at 
-          FROM users 
-          WHERE id <> ${currentUserId}
-            AND display_name ILIKE ${"%" + search + "%"}
-          ORDER BY created_at DESC 
-          LIMIT 20
-        `;
-        users = result.map((row: any) => ({
-          id: row.id,
-          email: row.email,
-          display_name: row.display_name,
-          avatar_url: row.avatar_url,
-          created_at: row.created_at,
-        }));
-      } else {
-        users = [];
-      }
+      const friends = await sql`
+        SELECT u.*
+        FROM users u
+        JOIN friends f ON (
+        (f.user_id = ${currentUserId} AND f.friend_id = u.id)
+        OR
+        (f.friend_id = ${currentUserId} AND f.user_id = u.id)
+        )
+        WHERE f.status = 'aceito'
+      `;
 
       return NextResponse.json({
-        users: users.map((user) => ({
+        users: friends.map((user) => ({
           id: user.id,
           email: user.email,
           displayName: user.display_name,

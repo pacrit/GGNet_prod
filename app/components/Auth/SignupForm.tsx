@@ -1,8 +1,9 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import Select from "react-select";
 
 interface SignupFormProps {
   onToggleForm: () => void;
@@ -16,8 +17,34 @@ export default function SignupForm({ onToggleForm }: SignupFormProps) {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>(
+    []
+  );
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   const { signup } = useAuth();
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch("/api/categories", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Erro ao carregar categorias");
+      }
+      const data = await response.json();
+      setCategories(data.categories || []);
+    } catch (error) {
+      console.error("Erro ao buscar categorias:", error);
+      setError("Não foi possível carregar as categorias");
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // Função para upload no Cloudinary
   async function uploadToCloudinary(file: File) {
@@ -70,7 +97,17 @@ export default function SignupForm({ onToggleForm }: SignupFormProps) {
         avatarUrl = await uploadToCloudinary(avatarFile);
       }
       // Passe avatarUrl para o signup
-      await signup(email, password, displayName, avatarUrl);
+      console.log("Iniciando cadastro para:", email);
+      console.log("Avatar URL:", avatarUrl);
+      console.log("Categorias selecionadas:", selectedCategories);
+      console.log("Dados do usuário:", {
+        email: email.trim(),
+        password,
+        displayName: displayName.trim(),
+        categories: selectedCategories,
+        avatarUrl,
+      });
+      await signup(email, password, displayName, selectedCategories, avatarUrl);
     } catch (error: any) {
       setError(error.message || "Erro ao criar conta");
     } finally {
@@ -138,6 +175,21 @@ export default function SignupForm({ onToggleForm }: SignupFormProps) {
             minLength={6}
           />
         </div>
+
+        <Select
+          placeholder="Selecione as categorias de jogos"
+          isMulti
+          options={categories.map((cat) => ({
+            value: cat.id,
+            label: cat.name,
+          }))}
+          value={categories
+            .filter((cat) => selectedCategories.includes(cat.id))
+            .map((cat) => ({ value: cat.id, label: cat.name }))}
+          onChange={(opts) =>
+            setSelectedCategories(opts.map((opt) => opt.value))
+          }
+        />
 
         <div className="form-group">
           <label htmlFor="avatar">Avatar (opcional)</label>

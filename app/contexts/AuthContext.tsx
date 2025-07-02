@@ -7,11 +7,12 @@ interface User {
   email: string
   displayName: string
   avatarUrl?: string
+  categories?:Array<number>
 }
 
 interface AuthContextType {
   currentUser: User | null
-  signup: (email: string, password: string, displayName: string, avatarUrl?: string) => Promise<void>
+  signup: (email: string, password: string, displayName: string, categories:Array<number>, avatarUrl?: string ) => Promise<void>
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   token: string | null
@@ -141,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   // Cadastro
-  async function signup(email: string, password: string, displayName: string, avatarUrl?: string) {
+  async function signup(email: string, password: string, displayName: string, categories:Array<number>, avatarUrl?: string) {
     try {
       // Validações básicas
       if (!email || !password || !displayName) {
@@ -159,6 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         displayName: displayName.trim(),
         avatar_url: avatarUrl,
+        categories
       })
 
       console.log("Cadastro bem-sucedido, salvando dados...")

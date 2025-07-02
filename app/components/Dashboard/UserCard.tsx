@@ -1,34 +1,39 @@
-"use client"
+"use client";
 
 interface UserData {
-  id: number
-  email: string
-  displayName: string
-  avatar_url?: string
-  createdAt: string
+  id: number;
+  email: string;
+  displayName: string;
+  avatar_url?: string;
+  createdAt: string;
 }
 
 interface UserCardProps {
-  user: UserData
-  onOpenChat: (recipientId: number, recipientName: string) => void
+  user: UserData;
+  onOpenChat: (recipientId: number, recipientName: string) => void;
 }
 
 export default function UserCard({ user, onOpenChat }: UserCardProps) {
   const handleStartChat = () => {
-    onOpenChat(user.id, user.displayName)
-  }
+    onOpenChat(user.id, user.displayName);
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR")
-  }
+    return new Date(dateString).toLocaleDateString("pt-BR");
+  };
 
   return (
     <div className="user-card">
       <div className="user-avatar">
         {user.avatar_url ? (
-          <img src={user.avatar_url || "/placeholder.svg"} alt={user.displayName} />
+          <img
+            src={user.avatar_url || "/placeholder.svg"}
+            alt={user.displayName}
+          />
         ) : (
-          <div className="avatar-placeholder">{user.displayName.charAt(0).toUpperCase()}</div>
+          <div className="avatar-placeholder">
+            {user.displayName.charAt(0).toUpperCase()}
+          </div>
         )}
       </div>
 
@@ -41,7 +46,14 @@ export default function UserCard({ user, onOpenChat }: UserCardProps) {
         <button onClick={handleStartChat} className="chat-button">
           💬 Conversar
         </button>
+        <a
+          href={`/profile/${user.id}`}
+          className="profile-link-button"
+          style={{ marginLeft: 8 }}
+        >
+          👤 Visitar perfil
+        </a>
       </div>
     </div>
-  )
+  );
 }
