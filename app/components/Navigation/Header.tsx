@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
-import { Button } from "antd";
+import { BarsOutlined } from "@ant-design/icons";
+import { Button, Drawer } from "antd";
+import Sidebar from "../Sidebar/Sidebar";
 
 interface HeaderProps {
   onNavigate: (page: "feed" | "friends") => void;
@@ -21,8 +24,11 @@ interface Notification {
 export default function Header({ onNavigate, currentPage }: HeaderProps) {
   const { currentUser, logout, token } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     // Buscar notificações do usuário logado
@@ -46,233 +52,295 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
   };
 
   return (
-    <header className="app-header">
-      <div className="header-container">
-        <div className="header-tittle">
-          <h1 className="app-logo">GG Networking</h1>
-        </div>
-        <div className="header-actions">
-          <nav className="header-nav">
-            <button
-              onClick={() => onNavigate("feed")}
-              className={`nav-btn ${currentPage === "feed" ? "active" : ""}`}
-            >
-              <span className="nav-icon">🏠</span>
-              <span className="nav-text">Feed</span>
-            </button>
-
-            <button
-              onClick={() => onNavigate("friends")}
-              className={`nav-btn ${currentPage === "friends" ? "active" : ""}`}
-            >
-              <span className="nav-icon">👥</span>
-              <span className="nav-text">Amigos</span>
-            </button>
-          </nav>
-
-          <div className="header-right">
-            <div className="notification-menu">
+    <div>
+      <header className="app-header">
+        <div className="header-container">
+          <div className="header-tittle">
+            <h1 className="app-logo">GG Networking</h1>
+          </div>
+          <div className="header-actions">
+            <nav className="header-nav">
+              <BarsOutlined
+                className="menu-icon-left"
+                onClick={() => setDrawerOpen(true)}
+              />
               <button
-                className="notification-btn"
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={() => onNavigate("feed")}
+                className={`nav-btn ${currentPage === "feed" ? "active" : ""}`}
               >
-                <span className="icon-bell">🔔</span>
-                {unreadCount > 0 && (
-                  <span className="notification-badge">{unreadCount}</span>
-                )}
+                <span className="nav-icon">🏠</span>
+                <span className="nav-text">Feed</span>
               </button>
-              {showNotifications && (
-                <div className="notification-dropdown">
-                  <h4>Notificações</h4>
-                  {notifications.length === 0 && <p>Nenhuma notificação.</p>}
-                  <ul>
-                    {notifications.map((n) => (
-                      <li key={n.id} className={n.is_read ? "read" : "unread"}>
-                        <span>{n.message}</span>
-                        <small>{new Date(n.created_at).toLocaleString()}</small>
-                        {n.type === "friend_request" ? (
-                          <div style={{ marginTop: 8 }}>
-                            <Button
-                              className="accept-friend-request-button"
-                              onClick={async () => {
-                                await fetch("/api/friends/accept", {
-                                  method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                    Authorization: `Bearer ${token}`,
-                                  },
-                                  body: JSON.stringify({
-                                    fromUserId: n.link?.split("/").pop(),
-                                  }),
-                                });
-                                // Marcar como lida no backend (opcional)
-                                await fetch("/api/notification", {
-                                  method: "PATCH",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                    Authorization: `Bearer ${token}`,
-                                  },
-                                  body: JSON.stringify({ id: n.id }),
-                                });
-                                // Remover do estado local
-                                setNotifications((prev) =>
-                                  prev.filter((item) => item.id !== n.id)
-                                );
-                              }}
-                            >
-                              Aceitar
-                            </Button>
-                            <Button
-                              color="danger"
-                              variant="outlined"
-                              onClick={async () => {
-                                await fetch("/api/friends/reject", {
-                                  method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                    Authorization: `Bearer ${token}`,
-                                  },
-                                  body: JSON.stringify({
-                                    fromUserId: n.link?.split("/").pop(),
-                                  }),
-                                });
-                                await fetch("/api/notification", {
-                                  method: "PATCH",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                    Authorization: `Bearer ${token}`,
-                                  },
-                                  body: JSON.stringify({ id: n.id }),
-                                });
-                                setNotifications((prev) =>
-                                  prev.filter((item) => item.id !== n.id)
-                                );
-                              }}
-                              style={{ marginLeft: 8 }}
-                            >
-                              Recusar
-                            </Button>
-                          </div>
-                        ) : (
-                          <span
-                            onClick={async () => {
-                              await fetch("/api/notification", {
-                                method: "PATCH",
-                                headers: {
-                                  "Content-Type": "application/json",
-                                  Authorization: `Bearer ${token}`,
-                                },
-                                body: JSON.stringify({ id: n.id }),
-                              });
-                              setNotifications((prev) =>
-                                prev.map((item) =>
-                                  item.id === n.id
-                                    ? { ...item, is_read: true }
-                                    : item
-                                )
-                              );
-                              if (n.link) window.location.href = n.link;
-                            }}
-                            style={{ cursor: n.link ? "pointer" : "default" }}
-                          >
-                            {n.link && "Ver"}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-            <div className="user-menu">
+
               <button
-                onClick={() => {
-                  setShowUserMenu(!showUserMenu), console.log(currentUser);
-                }}
-                className="user-menu-btn"
+                onClick={() => onNavigate("friends")}
+                className={`nav-btn ${
+                  currentPage === "friends" ? "active" : ""
+                }`}
               >
-                <div className="user-avatar-small">
-                  {currentUser?.avatarUrl ? (
-                    <img
-                      src={currentUser.avatarUrl || "/placeholder.svg"}
-                      alt={currentUser.displayName}
-                    />
-                  ) : (
-                    <div className="avatar-placeholder">
-                      {currentUser?.displayName?.charAt(0).toUpperCase()}
-                    </div>
+                <span className="nav-icon">👥</span>
+                <span className="nav-text">Amigos</span>
+              </button>
+            </nav>
+
+            <div className="header-right">
+              <div className="notification-menu">
+                <button
+                  className="notification-btn"
+                  onClick={() => setShowNotifications(!showNotifications)}
+                >
+                  <span className="icon-bell">🔔</span>
+                  {unreadCount > 0 && (
+                    <span className="notification-badge">{unreadCount}</span>
                   )}
-                </div>
-                <span className="user-name">{currentUser?.displayName}</span>
-                <span className="dropdown-arrow">▼</span>
-              </button>
-
-              {showUserMenu && (
-                <div className="user-dropdown">
-                  <div className="dropdown-header">
-                    <div className="user-avatar">
-                      {currentUser?.avatarUrl ? (
-                        <img
-                          src={currentUser.avatarUrl || "/placeholder.svg"}
-                          alt={currentUser.displayName}
-                        />
-                      ) : (
-                        <div className="avatar-placeholder">
-                          {currentUser?.displayName?.charAt(0).toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-                    <div className="user-details">
-                      <h4>{currentUser?.displayName}</h4>
-                      <p>{currentUser?.email}</p>
-                    </div>
+                </button>
+                {showNotifications && (
+                  <div className="notification-dropdown">
+                    <h4>Notificações</h4>
+                    {notifications.length === 0 && <p>Nenhuma notificação.</p>}
+                    <ul>
+                      {notifications.map((n) => (
+                        <li
+                          key={n.id}
+                          className={n.is_read ? "read" : "unread"}
+                        >
+                          <span>{n.message}</span>
+                          <small>
+                            {new Date(n.created_at).toLocaleString()}
+                          </small>
+                          {n.type === "friend_request" ? (
+                            <div style={{ marginTop: 8 }}>
+                              <Button
+                                className="accept-friend-request-button"
+                                onClick={async () => {
+                                  await fetch("/api/friends/accept", {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                    body: JSON.stringify({
+                                      fromUserId: n.link?.split("/").pop(),
+                                    }),
+                                  });
+                                  // Marcar como lida no backend (opcional)
+                                  await fetch("/api/notification", {
+                                    method: "PATCH",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                    body: JSON.stringify({ id: n.id }),
+                                  });
+                                  // Remover do estado local
+                                  setNotifications((prev) =>
+                                    prev.filter((item) => item.id !== n.id)
+                                  );
+                                }}
+                              >
+                                Aceitar
+                              </Button>
+                              <Button
+                                color="danger"
+                                variant="outlined"
+                                onClick={async () => {
+                                  await fetch("/api/friends/reject", {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                    body: JSON.stringify({
+                                      fromUserId: n.link?.split("/").pop(),
+                                    }),
+                                  });
+                                  await fetch("/api/notification", {
+                                    method: "PATCH",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                    body: JSON.stringify({ id: n.id }),
+                                  });
+                                  setNotifications((prev) =>
+                                    prev.filter((item) => item.id !== n.id)
+                                  );
+                                }}
+                                style={{ marginLeft: 8 }}
+                              >
+                                Recusar
+                              </Button>
+                            </div>
+                          ) : (
+                            <span
+                              onClick={async () => {
+                                await fetch("/api/notification", {
+                                  method: "PATCH",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                  body: JSON.stringify({ id: n.id }),
+                                });
+                                setNotifications((prev) =>
+                                  prev.map((item) =>
+                                    item.id === n.id
+                                      ? { ...item, is_read: true }
+                                      : item
+                                  )
+                                );
+                                if (n.link) window.location.href = n.link;
+                              }}
+                              style={{ cursor: n.link ? "pointer" : "default" }}
+                            >
+                              {n.link && "Ver"}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
+                )}
+              </div>
+              <div className="user-menu">
+                <button
+                  onClick={() => {
+                    setShowUserMenu(!showUserMenu), console.log(currentUser);
+                  }}
+                  className="user-menu-btn"
+                >
+                  <div className="user-avatar-small">
+                    {currentUser?.avatarUrl ? (
+                      <img
+                        src={currentUser.avatarUrl || "/placeholder.svg"}
+                        alt={currentUser.displayName}
+                      />
+                    ) : (
+                      <div className="avatar-placeholder">
+                        {currentUser?.displayName?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <span className="user-name">{currentUser?.displayName}</span>
+                  <span className="dropdown-arrow">▼</span>
+                </button>
 
-                  <div className="dropdown-divider"></div>
+                {showUserMenu && (
+                  <div className="user-dropdown">
+                    <div className="dropdown-header">
+                      <div className="user-avatar">
+                        {currentUser?.avatarUrl ? (
+                          <img
+                            src={currentUser.avatarUrl || "/placeholder.svg"}
+                            alt={currentUser.displayName}
+                          />
+                        ) : (
+                          <div className="avatar-placeholder">
+                            {currentUser?.displayName?.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="user-details">
+                        <h4>{currentUser?.displayName}</h4>
+                        <p>{currentUser?.email}</p>
+                      </div>
+                    </div>
 
-                  <div className="dropdown-actions">
+                    <div className="dropdown-divider"></div>
+
+                    <div className="dropdown-actions">
+                      <button
+                        className="dropdown-btn"
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          window.location.href = "/profile";
+                        }}
+                      >
+                        <span className="btn-icon">👤</span>
+                        Perfil
+                      </button>
+                    </div>
+
+                    <div className="dropdown-divider"></div>
+
                     <button
-                      className="dropdown-btn"
-                      onClick={() => {
-                        setShowUserMenu(false);
-                        window.location.href = "/profile";
-                      }}
+                      onClick={handleLogout}
+                      className="dropdown-btn logout-btn"
                     >
-                      <span className="btn-icon">👤</span>
-                      Perfil
-                    </button>
-                    <button className="dropdown-btn">
-                      <span className="btn-icon">⚙️</span>
-                      Configurações
-                    </button>
-                    <button className="dropdown-btn">
-                      <span className="btn-icon">❓</span>
-                      Ajuda
+                      <span className="btn-icon">🚪</span>
+                      Sair
                     </button>
                   </div>
-
-                  <div className="dropdown-divider"></div>
-
-                  <button
-                    onClick={handleLogout}
-                    className="dropdown-btn logout-btn"
-                  >
-                    <span className="btn-icon">🚪</span>
-                    Sair
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {showUserMenu && (
-        <div
-          className="dropdown-overlay"
-          onClick={() => setShowUserMenu(false)}
-        ></div>
-      )}
-    </header>
+        {showUserMenu && (
+          <div
+            className="dropdown-overlay"
+            onClick={() => setShowUserMenu(false)}
+          ></div>
+        )}
+      </header>
+      <div className="drawer-mobile">
+      <Drawer
+        title="Fechar Menu"
+        style={{ width: "250px" }}
+        placement="left"
+        onClose={() => setDrawerOpen(false)}
+        open={drawerOpen}
+      >
+        <div className="drawer-content">
+          <div className="drawer-header">
+            <h2>Integrações</h2>
+          </div>
+          <div
+            className="valorant-icon"
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setDrawerOpen(false);
+              router.push("/valorant");
+            }}
+          >
+            <img
+              src="/icon-val.png"
+              alt="Valorant Icon"
+              width={32}
+              height={32}
+            />
+            <span className="val-tittle">Valorant</span>
+          </div>
+          <div
+            className="valorant-icon"
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setDrawerOpen(false);
+              router.push("/valorant");
+            }}
+          >
+            <img src="/icon-cs.png" alt="CS Icon" width={32} height={32} />
+            <span className="val-tittle">CS:GO</span>
+          </div>
+          <div
+            className="valorant-icon"
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              setDrawerOpen(false);
+              router.push("/valorant");
+            }}
+          >
+            <img src="/icon-lol.png" alt="LOL icon" width={32} height={32} />
+            <span className="val-tittle">LOL</span>
+          </div>
+        </div>
+      </Drawer>
+      </div>
+      {/* Sidebar fixa para desktop */}
+      <div className="sidebar-desktop">
+        <Sidebar />
+      </div>
+    </div>
   );
 }

@@ -73,6 +73,13 @@ body {
   flex-direction: row; /* <-- importante! */
 }
 
+.menu-icon-left {
+  font-size: 24px;
+  margin-right: 16px;
+  margin-left: 0;
+  vertical-align: middle;
+}
+
 .header-title {
   width: auto;
   text-align: left;
@@ -404,12 +411,16 @@ body {
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+.btn-connect-valorant-account{
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
 
 .btn-icon-back {
   font-size: 20px;
   width: 20px;
   text-align: center;
   margin-right: 2px;
+  border-radius: '15px';
 }
 
 .profile-container {
@@ -521,22 +532,6 @@ body {
   word-break: break-all;
 }
 
-@media (max-width: 600px) {
-  .profile-container {
-    padding: 18px 6vw;
-    max-width: 98vw;
-  }
-  .profile-edit-btn {
-    top: 16px;
-    right: 16px;
-    padding: 7px 12px;
-    font-size: 0.95rem;
-  }
-  .profile-avatar {
-    width: 80px;
-    height: 80px;
-  }
-}
 /* Feed Styles */
 .feed-container {
   max-width: 680px;
@@ -1476,6 +1471,14 @@ body {
   transform: none;
 }
 
+.content-valorant-page{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: #f0f2f5;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .header-content {
@@ -1525,6 +1528,65 @@ body {
   }
 }
 
+/* Esconde Drawer no desktop, mostra no mobile */
+.drawer-mobile {
+  display: block;
+  
+}
+.sidebar-desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .drawer-mobile {
+    display: none;
+  }
+  .sidebar-desktop {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 56px; /* ajuste conforme seu header */
+    width: 250px;
+    height: calc(100vh - 56px);
+    background: #fff;
+    border-right: 1px solid #dadde1;
+    z-index: 999;
+    padding-top: 16px;
+  }
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #f0f2f5;
+  border-bottom: 1px solid #dadde1;
+  margin-bottom: 2em;
+}
+
+.drawer-content {
+  padding: 0px;
+  flex: 1;
+}
+
+.valorant-icon{
+  display: flex;
+  width: 24px;
+  height: 24px;
+  background-size: contain;
+  cursor: pointer;
+  margin-bottom: 2em;
+}
+
+.val-tittle{
+  margin-left: 0.5em;
+  padding-bottom: 1em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #E6ABFF;
+}
+
 @media (max-width: 600px) {
   .header-container {
     flex-direction: column;
@@ -1532,6 +1594,12 @@ body {
     height: auto;
     gap: 0;
     padding: 8px 0 0 0;
+  }
+
+    .menu-icon-left {
+    align-self: flex-start;
+    padding: 8px 0px 6px 0px;
+    cursor: pointer;
   }
 
   .header-title {
@@ -1560,6 +1628,21 @@ body {
     gap: 12px;
     justify-content: center;
     width: 100%;
+  }
+
+  .profile-container {
+    padding: 18px 6vw;
+    max-width: 98vw;
+  }
+  .profile-edit-btn {
+    top: 16px;
+    right: 16px;
+    padding: 7px 12px;
+    font-size: 0.95rem;
+  }
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
   }
 }
 
