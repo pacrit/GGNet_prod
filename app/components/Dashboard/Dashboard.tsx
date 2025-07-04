@@ -145,7 +145,7 @@ export default function Dashboard({ onOpenChat }: DashboardProps) {
                   }),
                 });
 
-                // 2. Criar notificação
+                // 2. Criar notificação com informações do remetente
                 await fetch("/api/notification", {
                   method: "POST",
                   headers: {
@@ -155,8 +155,9 @@ export default function Dashboard({ onOpenChat }: DashboardProps) {
                   body: JSON.stringify({
                     user_id: modalUser.id,
                     type: "friend_request",
-                    message: "Você recebeu um pedido de amizade!",
+                    message: `${currentUser?.displayName} enviou um pedido de amizade!`,
                     link: `/profile/${currentUser?.id}`,
+                    from_user_id: currentUser?.id, // Adicionar ID do remetente
                   }),
                 });
 

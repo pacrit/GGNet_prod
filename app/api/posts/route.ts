@@ -13,10 +13,10 @@ function verifyToken(token: string) {
   }
 }
 
-// GET - Buscar posts
+// GET - Buscar posts apenas de amigos
 export async function GET(request: NextRequest) {
   try {
-    console.log("🔄 Buscando posts...")
+    console.log("🔄 Buscando posts de amigos...")
 
     const authHeader = request.headers.get("authorization")
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
     const currentUserId = payload.userId
 
-    // Buscar posts com informações do usuário e curtidas
+    // Buscar posts apenas de amigos (incluindo próprios posts)
     const posts = await sql`
       SELECT 
         p.id,
@@ -48,7 +48,18 @@ export async function GET(request: NextRequest) {
       JOIN users u ON p.user_id = u.id
       LEFT JOIN post_likes l ON p.id = l.post_id
       LEFT JOIN post_likes ul ON p.id = ul.post_id AND ul.user_id = ${currentUserId}
-      GROUP BY p.id, p.content, p.user_id, p.created_at, u.display_name, u.avatar_url, ul.user_id
+      WHERE p.user_id = ${currentUserId} -- Próprios posts
+         OR p.user_id IN (
+           -- Posts de amigos aceitos
+           SELECT user_id 
+           FROM friends 
+           WHERE friend_id = ${currentUserId} AND status = 'accepted'
+           UNION
+           SELECT friend_id 
+           FROM friends 
+           WHERE user_id = ${currentUserId} AND status = 'accepted'
+         )
+      GROUP BY p.id, p.content, p.image_url, p.user_id, p.created_at, u.display_name, u.avatar_url, ul.user_id
       ORDER BY p.created_at DESC
       LIMIT 50
     `
@@ -87,6 +98,8 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    console.log(`✅ Encontrados ${posts.length} posts de amigos`)
+
     // Montar resposta incluindo os comentários
     return NextResponse.json({
       success: true,
@@ -98,12 +111,12 @@ export async function GET(request: NextRequest) {
       })),
     })
   } catch (error) {
-    console.error("❌ Erro ao buscar posts:", error)
+    console.error("❌ Erro ao buscar posts de amigos:", error)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
 
-// POST - Criar post
+// POST - Criar post (permanece igual)
 export async function POST(request: NextRequest) {
   try {
     console.log("🔄 Criando novo post...")
@@ -149,13 +162,14 @@ export async function POST(request: NextRequest) {
     const postWithUser = {
       id: newPost[0].id,
       content: newPost[0].content,
-      image_url: image_url || null, // Se não houver imagem, será null
+      image_url: image_url || null,
       user_id: newPost[0].user_id,
       created_at: newPost[0].created_at,
       user_name: user[0].display_name,
       user_avatar: user[0].avatar_url,
       likes_count: 0,
       user_liked: false,
+      comments: [], // Inicializar com array vazio
     }
 
     console.log("✅ Post criado com sucesso:", postWithUser.id)

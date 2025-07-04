@@ -65,7 +65,7 @@ body {
 .header-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 4px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -74,10 +74,87 @@ body {
 }
 
 .menu-icon-left {
-  font-size: 24px;
-  margin-right: 16px;
-  margin-left: 0;
-  vertical-align: middle;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  color: #667eea;
+  margin-left: -80px;
+}
+
+.menu-icon-left:hover {
+  background-color: rgba(102, 126, 234, 0.1);
+  color: #5a67d8;
+}
+
+/* Esconder menu hambúrguer no desktop */
+.mobile-only {
+  display: none;
+}
+
+/* Mostrar menu hambúrguer apenas no mobile */
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+}
+
+/* Opcional: Ajustar navegação para desktop */
+@media (min-width: 769px) {
+  .header-nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    color: #666;
+  }
+  
+  .nav-btn:hover {
+    background-color: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+  }
+  
+  .nav-btn.active {
+    background-color: rgba(102, 126, 234, 0.2);
+    color: #667eea;
+    font-weight: 600;
+  }
+}
+
+/* Mobile: manter apenas os ícones visíveis */
+@media (max-width: 768px) {
+  .nav-text {
+    display: none;
+  }
+  
+  .nav-btn {
+    min-width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+  
+  .nav-icon {
+    font-size: 1.2rem;
+  }
 }
 
 .header-title {
@@ -122,16 +199,117 @@ body {
   gap: 8px;
 }
 
+/* Notificações clicáveis */
+.notification-dropdown li[style*="pointer"] {
+  cursor: pointer;
+}
+
+.notification-dropdown li[style*="pointer"]:hover {
+  background: #f8f9fa;
+  transform: translateX(2px);
+}
+
+/* Notificações de friend_request (não clicáveis) */
+.notification-dropdown li[style*="default"] {
+  cursor: default;
+}
+
+.notification-action-hint {
+  font-size: 0.7rem;
+  color: #667eea;
+  font-style: italic;
+}
+
+/* Botões de friend_request */
+.accept-friend-request-button {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  height: auto;
+}
+
+.notification-dropdown .ant-btn {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  height: auto;
+}
+
 .add-friend-section {
   margin-bottom: 24px;
   max-width: 400px;
 }
 
-
 .notification-menu {
   position: relative;
   display: inline-block;
   margin-right: 16px;
+}
+
+.notification-sender {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.notification-sender-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #667eea;
+}
+
+.notification-sender-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notification-sender-info strong {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.notification-sender-info span {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.notification-dropdown .notification-actions .ant-btn {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+  .notification-sender {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .notification-sender-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .notification-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .notification-dropdown .notification-actions .ant-btn {
+    flex: 1;
+  }
 }
 
 .notification-btn {
@@ -157,44 +335,20 @@ body {
 }
 
 .notification-dropdown {
-  position: absolute;
-  right: 0;
-  top: 36px;
+  position: fixed; /* Mudança de absolute para fixed */
+  right: 16px; /* Margem da direita */
+  top: 80px; /* Aumentei de 60px para 70px */
+  left: 16px; /* Margem da esquerda */
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 24px #0002;
-  width: 320px;
-  max-height: 400px;
+  width: auto; /* Remover largura fixa */
+  max-width: 400px; /* Largura máxima */
+  max-height: 60vh; /* Altura máxima baseada na viewport */
   overflow-y: auto;
   z-index: 1000;
   padding: 16px;
-}
-
-.notification-dropdown ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.notification-dropdown li {
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.notification-dropdown li.unread {
-  background: #f7f7fa;
-  font-weight: bold;
-}
-
-.notification-dropdown li.read {
-  background: #fff;
-  color: #888;
-}
-
-.notification-dropdown li:last-child {
-  border-bottom: none;
+  margin: 0 auto; /* Centralizar */
 }
 
 .nav-btn {
@@ -223,6 +377,7 @@ body {
 
 .nav-icon {
   font-size: 20px;
+  margin-left: 10px;
 }
 
 .nav-text {
@@ -232,6 +387,118 @@ body {
 @media (min-width: 768px) {
   .nav-text {
     display: inline;
+  }
+}
+
+/* Para desktop, manter o comportamento original */
+@media (min-width: 768px) {
+  .notification-dropdown {
+    position: absolute;
+    right: 0;
+    top: 56px;
+    left: auto;
+    width: 320px;
+    margin-top: 25px;
+    max-height: 400px;
+    margin: 0;
+  }
+}
+
+/* Ajustes no header para mobile */
+@media (max-width: 767px) {
+  .notification-menu {
+    position: relative;
+    display: inline-block;
+    margin-right: 8px; /* Reduzir margem em mobile */
+  }
+  
+  .notification-btn {
+    background: none;
+    border: none;
+    position: relative;
+    cursor: pointer;
+    font-size: 1.3rem; /* Reduzir tamanho em mobile */
+    padding: 4px;
+  }
+  
+  .notification-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: #e53e3e;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    padding: 2px 5px;
+    min-width: 18px;
+    text-align: center;
+    font-weight: bold;
+  }
+  
+  .notification-dropdown h3 {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: #333;
+  }
+  
+  .notification-dropdown li {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  
+  .notification-dropdown li:hover {
+    background: #f8f9fa;
+  }
+  
+  .notification-dropdown li.unread {
+    background: #f7f7fa;
+    font-weight: 600;
+  }
+  
+  .notification-dropdown li.read {
+    background: #fff;
+    color: #666;
+  }
+}
+
+/* Overlay para mobile */
+.notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .notification-overlay {
+    display: block;
+  }
+}
+
+/* Ajustar o header container em mobile */
+@media (max-width: 767px) {
+  .header-container {
+    padding: 0 12px;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 }
 
@@ -399,7 +666,7 @@ body {
   z-index: 999;
 }
 
-.profile-back-btn{
+.profile-back-btn {
   position: absolute;
   top: 1%;
   left: 1%;
@@ -411,7 +678,7 @@ body {
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.btn-connect-valorant-account{
+.btn-connect-valorant-account {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
@@ -420,16 +687,90 @@ body {
   width: 20px;
   text-align: center;
   margin-right: 2px;
-  border-radius: '15px';
+  border-radius: "15px";
+}
+
+/* Profile Status Indicators */
+.profile-header span[style*="color: #888"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.profile-header span[style*="color: #888"]:before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+/* Friend status indicators */
+.profile-header span:contains("Amigo"):before {
+  background: #22c55e;
+}
+
+.profile-header span:contains("Seu Perfil"):before {
+  background: #667eea;
+}
+
+/* Privacy message styling */
+.no-posts h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.no-posts h4:before {
+  content: "🔒";
+  font-size: 1.2em;
+}
+
+/* Posts section enhancements */
+.profile-posts-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-posts-section h3:before {
+  content: "📝";
+  font-size: 1.2em;
+}
+
+/* Loading states */
+.profile-posts-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .profile-container {
   max-width: 480px;
-  margin: 40px auto;
+  margin: 10px auto;
   background: #fff;
   border-radius: 18px;
   padding: 32px 28px 28px 28px;
-  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.10), 0 1.5px 8px #0001;
+  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.1), 0 1.5px 8px #0001;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -456,6 +797,7 @@ body {
 }
 
 .profile-actions {
+  margin-top:70px;
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -1193,7 +1535,7 @@ body {
   margin-top: 2rem;
 }
 
-.profile-link-button{
+.profile-link-button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
@@ -1203,6 +1545,102 @@ body {
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.3s ease;
+}
+
+.profile-posts-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-posts-section h3 {
+  margin: 0 0 1.5rem 0;
+  color: #333;
+  font-size: 1.3rem;
+  font-weight: 600;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 0.5rem;
+}
+
+.profile-posts-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.profile-posts-error {
+  text-align: center;
+  padding: 2rem;
+  color: #e53e3e;
+  background: #fff5f5;
+  border-radius: 8px;
+  border: 1px solid #feb2b2;
+}
+
+.profile-posts-error .retry-btn {
+  background: #e53e3e;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.profile-posts-error .retry-btn:hover {
+  background: #c53030;
+}
+
+.no-posts {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #666;
+}
+
+.no-posts h4 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.go-to-feed-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.go-to-feed-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.profile-posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .profile-posts-section {
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .profile-posts-section h3 {
+    font-size: 1.1rem;
+  }
+  
+  .no-posts {
+    padding: 2rem 1rem;
+  }
 }
 
 .no-users {
@@ -1471,12 +1909,235 @@ body {
   transform: none;
 }
 
-.content-valorant-page{
+.content-valorant-page {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 2rem;
   background: #f0f2f5;
+}
+
+.content-lol-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: #f0f2f5;
+  min-height: calc(100vh - 80px);
+}
+
+.lol-title {
+  color: #667eea;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.btn-connect-lol-account {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  height: 45px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-connect-lol-account:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.content-lol-page .ant-form {
+  background: white;
+  border: 1px solid #dadde1;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.1), 0 1.5px 8px #0001;
+  max-width: 400px;
+  width: 100%;
+}
+
+.content-lol-page .ant-form-item-label > label {
+  color: #333;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.content-lol-page .ant-input,
+.content-lol-page .ant-select-selector {
+  background: white;
+  border: 1px solid #dadde1;
+  color: #333;
+  transition: border-color 0.2s;
+}
+
+.content-lol-page .ant-input:focus,
+.content-lol-page .ant-select-selector:focus,
+.content-lol-page .ant-select-focused .ant-select-selector {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.content-lol-page .ant-input::placeholder {
+  color: #65676b;
+}
+
+.content-lol-page .ant-select-selection-placeholder {
+  color: #65676b;
+}
+
+/* Connected Account Styles - Seguindo padrão do Valorant */
+.content-lol-page .lol-connected-info {
+  background: white;
+  border: 1px solid #dadde1;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.1), 0 1.5px 8px #0001;
+  max-width: 600px;
+  width: 100%;
+}
+
+.content-lol-page .lol-connected-info p {
+  color: #333;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.content-lol-page .lol-connected-info b {
+  color: #667eea;
+}
+
+/* Buttons for connected account */
+.content-lol-page .lol-action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.content-lol-page .lol-action-buttons .ant-btn {
+  background: white;
+  border: 1px solid #667eea;
+  color: #667eea;
+  font-weight: 600;
+  height: 40px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  min-width: 160px;
+}
+
+.content-lol-page .lol-action-buttons .ant-btn:hover {
+  background: #f0f2f5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.content-lol-page .lol-action-buttons .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.content-lol-page .lol-action-buttons .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Table Styles - Seguindo padrão do Valorant */
+.content-lol-page .ant-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 2rem;
+  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.1), 0 1.5px 8px #0001;
+  max-width: 100%;
+  width: 100%;
+}
+
+.content-lol-page .ant-table-thead > tr > th {
+  background: #f0f2f5;
+  color: #333;
+  font-weight: 600;
+  border-bottom: 1px solid #dadde1;
+}
+
+.content-lol-page .ant-table-tbody > tr > td {
+  background: white;
+  color: #333;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.content-lol-page .ant-table-tbody > tr:hover > td {
+  background: #f8f9fa;
+}
+
+/* Modal Styles - Seguindo padrão do Valorant */
+.content-lol-page .ant-modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.1), 0 1.5px 8px #0001;
+}
+
+.content-lol-page .ant-modal-header {
+  background: #f0f2f5;
+  border-bottom: 1px solid #dadde1;
+  border-radius: 12px 12px 0 0;
+}
+
+.content-lol-page .ant-modal-title {
+  color: #333;
+  font-weight: 600;
+}
+
+.content-lol-page .ant-modal-body {
+  color: #333;
+}
+
+/* Alert Styles - Seguindo padrão do Valorant */
+.content-lol-page .ant-alert-error {
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .content-lol-page {
+    padding: 1rem;
+  }
+
+  .lol-title {
+    font-size: 2rem;
+  }
+
+  .content-lol-page .ant-form {
+    padding: 1.5rem;
+    margin: 0 1rem;
+  }
+
+  .content-lol-page .lol-connected-info {
+    margin: 0 1rem 2rem 1rem;
+  }
+
+  .content-lol-page .lol-action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .content-lol-page .ant-table {
+    font-size: 0.9rem;
+  }
 }
 
 /* Responsive Design */
@@ -1531,7 +2192,6 @@ body {
 /* Esconde Drawer no desktop, mostra no mobile */
 .drawer-mobile {
   display: block;
-  
 }
 .sidebar-desktop {
   display: none;
@@ -1570,7 +2230,7 @@ body {
   flex: 1;
 }
 
-.valorant-icon{
+.valorant-icon {
   display: flex;
   width: 24px;
   height: 24px;
@@ -1579,12 +2239,12 @@ body {
   margin-bottom: 2em;
 }
 
-.val-tittle{
+.val-tittle {
   margin-left: 0.5em;
   padding-bottom: 1em;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #E6ABFF;
+  color: #e6abff;
 }
 
 @media (max-width: 600px) {
@@ -1596,7 +2256,7 @@ body {
     padding: 8px 0 0 0;
   }
 
-    .menu-icon-left {
+  .menu-icon-left {
     align-self: flex-start;
     padding: 8px 0px 6px 0px;
     cursor: pointer;
@@ -1631,7 +2291,7 @@ body {
   }
 
   .profile-container {
-    padding: 18px 6vw;
+    padding: 1px 6vw;
     max-width: 98vw;
   }
   .profile-edit-btn {
@@ -1706,4 +2366,151 @@ input:focus-visible {
 * {
   transition: color 0.3s ease, background-color 0.3s ease,
     border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Connected Account Info Styles */
+.lol-connected-info,
+.valorant-connected-info {
+  background: white;
+  border: 1px solid #dadde1;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.1), 0 1.5px 8px #0001;
+  max-width: 600px;
+  width: 100%;
+}
+
+.connected-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.success-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(82, 196, 26, 0.3);
+}
+
+.connected-header h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.account-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.detail-value {
+  font-weight: 700;
+  color: #333;
+  font-size: 1rem;
+}
+
+.detail-value.game-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.lol-action-buttons,
+.valorant-action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.lol-action-buttons .ant-btn,
+.valorant-action-buttons .ant-btn {
+  background: white;
+  border: 1px solid #667eea;
+  color: #667eea;
+  font-weight: 600;
+  height: 40px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  min-width: 160px;
+}
+
+.lol-action-buttons .ant-btn:hover,
+.valorant-action-buttons .ant-btn:hover {
+  background: #f0f2f5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.lol-action-buttons .ant-btn-primary,
+.valorant-action-buttons .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+.lol-action-buttons .ant-btn-primary:hover,
+.valorant-action-buttons .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .lol-connected-info,
+  .valorant-connected-info {
+    padding: 1.5rem;
+    margin: 0 1rem 2rem 1rem;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .detail-value.game-badge {
+    justify-content: center;
+  }
+  
+  .lol-action-buttons,
+  .valorant-action-buttons {
+    flex-direction: column;
+  }
 }

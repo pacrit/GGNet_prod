@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
         OR
         (f.friend_id = ${currentUserId} AND f.user_id = u.id)
         )
-        WHERE f.status = 'aceito'
+        WHERE f.status = 'accepted'
       `;
 
       return NextResponse.json({

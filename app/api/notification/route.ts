@@ -32,11 +32,28 @@ export async function GET(request: NextRequest) {
   if (!userId)
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
+  // Modificar query para incluir dados do remetente (para friend_request)
   const notifications = await sql`
-    SELECT id, type, message, link, is_read, created_at
-    FROM notifications
-    WHERE user_id = ${userId}
-    ORDER BY created_at DESC
+    SELECT 
+      n.id, 
+      n.type, 
+      n.message, 
+      n.link, 
+      n.is_read, 
+      n.created_at,
+      n.from_user_id,
+      CASE 
+        WHEN n.type = 'friend_request' THEN u.display_name
+        ELSE NULL
+      END as from_user_name,
+      CASE 
+        WHEN n.type = 'friend_request' THEN u.avatar_url
+        ELSE NULL
+      END as from_user_avatar
+    FROM notifications n
+    LEFT JOIN users u ON n.from_user_id = u.id
+    WHERE n.user_id = ${userId}
+    ORDER BY n.created_at DESC
     LIMIT 20
   `;
   return NextResponse.json({ notifications });
@@ -51,10 +68,10 @@ export async function PATCH(request: NextRequest) {
 
 // Criar notificação
 export async function POST(request: NextRequest) {
-  const { user_id, type, message, link } = await request.json();
+  const { user_id, type, message, link, from_user_id } = await request.json();
   const result = await sql`
-    INSERT INTO notifications (user_id, type, message, link)
-    VALUES (${user_id}, ${type}, ${message}, ${link})
+    INSERT INTO notifications (user_id, type, message, link, from_user_id)
+    VALUES (${user_id}, ${type}, ${message}, ${link}, ${from_user_id})
     RETURNING id
   `;
   return NextResponse.json({ id: result[0].id });

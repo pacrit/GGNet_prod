@@ -92,18 +92,44 @@ function ValorantPage() {
       <div className="content-valorant-page">
         <h3 className="valorant-title">Valorant</h3>
         {valorantData ? (
-          <div>
-            <p>Conta já conectada!</p>
-            <p>
-              <b>Nome:</b> {valorantData.riot_name}#{valorantData.riot_tag}
-            </p>
-            <Button
-              onClick={fetchLeaderboard}
-              loading={loadingMatches}
-              style={{ marginTop: 16 }}
-            >
-              Consultar histórico de partidas
-            </Button>
+          <div className="valorant-connected-info">
+            <div className="connected-header">
+              <div className="success-icon">✓</div>
+              <h4>Conta Conectada com Sucesso!</h4>
+            </div>
+
+            <div className="account-details">
+              <div className="detail-row">
+                <span className="detail-label">Nome Riot:</span>
+                <span className="detail-value">{valorantData.riot_name}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Tag:</span>
+                <span className="detail-value">#{valorantData.riot_tag}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Jogo:</span>
+                <span className="detail-value game-badge">
+                  <img
+                    src="/icon-val.png"
+                    alt="Valorant"
+                    width={20}
+                    height={20}
+                  />
+                  Valorant
+                </span>
+              </div>
+            </div>
+
+            <div className="valorant-action-buttons">
+              <Button
+                onClick={fetchLeaderboard}
+                loading={loadingMatches}
+                type="primary"
+              >
+                Consultar Leaderboard
+              </Button>
+            </div>
             {leaderboard && (
               <div style={{ marginTop: 24 }}>
                 <h4>Top 200 Jogadores do Ato Atual</h4>
@@ -112,53 +138,74 @@ function ValorantPage() {
                   rowKey="puuid"
                   pagination={{ pageSize: 10 }}
                   bordered
+                  scroll={{ x: 600 }} // Adicionar scroll horizontal
                   columns={[
                     {
-                      title: "Posição",
+                      title: "Pos",
                       dataIndex: "leaderboardRank",
                       key: "leaderboardRank",
-                      width: 90,
+                      width: 60,
+                      fixed: "left", // Fixar coluna da esquerda
                     },
                     {
                       title: "Jogador",
                       dataIndex: "gameName",
                       key: "gameName",
+                      width: 200,
                       render: (text, record) => (
-                        <span>
+                        <div style={{ display: "flex", alignItems: "center" }}>
                           <Avatar
                             style={{
                               backgroundColor: "#1677ff",
                               marginRight: 8,
                             }}
+                            size="small"
                           >
                             {text?.charAt(0).toUpperCase()}
                           </Avatar>
-                          {text}#{record.tagLine}
+                          <div>
+                            <div style={{ fontWeight: "bold", fontSize: "0.9rem" }}>
+                              {text}
+                            </div>
+                            <div style={{ fontSize: "0.7rem", color: "#666" }}>
+                              #{record.tagLine}
+                            </div>
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      title: "RR",
+                      dataIndex: "rankedRating",
+                      key: "rankedRating",
+                      width: 80,
+                      render: (rating) => (
+                        <span style={{ fontWeight: "bold", color: "#1677ff" }}>
+                          {rating}
                         </span>
                       ),
                     },
                     {
-                      title: "Pontos Ranqueados",
-                      dataIndex: "rankedRating",
-                      key: "rankedRating",
-                      width: 120,
-                    },
-                    {
-                      title: "Vitórias",
+                      title: "Wins",
                       dataIndex: "numberOfWins",
                       key: "numberOfWins",
-                      width: 90,
+                      width: 70,
+                      responsive: ["md"], // Esconder em telas pequenas
                     },
                     {
                       title: "Status",
                       dataIndex: "isBanned",
                       key: "isBanned",
-                      width: 90,
+                      width: 70,
                       render: (isBanned) =>
                         isBanned ? (
-                          <Tag color="red">Banido</Tag>
+                          <Tag color="red" >
+                            Ban
+                          </Tag>
                         ) : (
-                          <Tag color="green">OK</Tag>
+                          <Tag color="green">
+                            OK
+                          </Tag>
                         ),
                     },
                   ]}

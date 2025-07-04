@@ -16,18 +16,20 @@ export default function Sidebar() {
         <img src="/icon-val.png" alt="Valorant Icon" width={32} height={32} />
         <span className="val-tittle">Valorant</span>
       </div>
-      <div
+      {/*
+        <div
         className="valorant-icon"
         style={{ cursor: "pointer" }}
-        onClick={() => router.push("/valorant")}
       >
         <img src="/icon-cs.png" alt="CS Icon" width={32} height={32} />
         <span className="val-tittle">Counter Strike</span>
       </div>
+        */}
+
       <div
         className="valorant-icon"
         style={{ cursor: "pointer" }}
-        onClick={() => router.push("/valorant")}
+        onClick={() => router.push("/lol")}
       >
         <img src="/icon-lol.png" alt="LOL icon" width={32} height={32} />
         <span className="val-tittle">League of Legends</span>
