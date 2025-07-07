@@ -6,7 +6,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar-fixed">
       <div className="drawer-header">
-        <h2>Integrações</h2>
+        <h2>Jogos</h2>
       </div>
       <div
         className="valorant-icon"
@@ -32,7 +32,7 @@ export default function Sidebar() {
         onClick={() => router.push("/lol")}
       >
         <img src="/icon-lol.png" alt="LOL icon" width={32} height={32} />
-        <span className="val-tittle">League of Legends</span>
+        <span className="val-tittle">LOL</span>
       </div>
     </aside>
   );

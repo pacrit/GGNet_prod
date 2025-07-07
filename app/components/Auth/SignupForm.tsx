@@ -176,20 +176,23 @@ export default function SignupForm({ onToggleForm }: SignupFormProps) {
           />
         </div>
 
-        <Select
-          placeholder="Selecione as categorias de jogos"
-          isMulti
-          options={categories.map((cat) => ({
-            value: cat.id,
-            label: cat.name,
-          }))}
-          value={categories
-            .filter((cat) => selectedCategories.includes(cat.id))
-            .map((cat) => ({ value: cat.id, label: cat.name }))}
-          onChange={(opts) =>
-            setSelectedCategories(opts.map((opt) => opt.value))
-          }
-        />
+        <div className="form-group">
+          <label htmlFor="categories">Categorias de Jogos que curte</label>
+          <Select
+            placeholder="Selecione as categorias de jogos"
+            isMulti
+            options={categories.map((cat) => ({
+              value: cat.id,
+              label: cat.name,
+            }))}
+            value={categories
+              .filter((cat) => selectedCategories.includes(cat.id))
+              .map((cat) => ({ value: cat.id, label: cat.name }))}
+            onChange={(opts) =>
+              setSelectedCategories(opts.map((opt) => opt.value))
+            }
+          />
+        </div>
 
         <div className="form-group">
           <label htmlFor="avatar">Avatar (opcional)</label>

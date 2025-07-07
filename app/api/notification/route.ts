@@ -76,3 +76,36 @@ export async function POST(request: NextRequest) {
   `;
   return NextResponse.json({ id: result[0].id });
 }
+
+// DELETE - Excluir notificação
+export async function DELETE(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Token não fornecido" }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const payload = verifyToken(token);
+
+    if (!payload) {
+      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+    }
+
+    const userId = payload.userId;
+
+    // Deletar todas as notificações do usuário
+    const result = await sql`
+      DELETE FROM notifications 
+      WHERE user_id = ${userId}
+    `;
+
+    return NextResponse.json({
+      success: true,
+      message: "Todas as notificações foram removidas",
+    });
+  } catch (error) {
+    console.error("Erro ao limpar notificações:", error);
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
+  }
+}

@@ -66,6 +66,7 @@ export async function GET(request: NextRequest) {
       `;
 
       return NextResponse.json({
+        success:true,
         users: friends.map((user) => ({
           id: user.id,
           email: user.email,
