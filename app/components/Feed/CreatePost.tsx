@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { CameraOutlined } from "@ant-design/icons";
 import { Button, FloatButton } from "antd";
+import { set } from "react-hook-form";
 
 interface CreatePostProps {
   onPostCreated: (post: any) => void;
@@ -64,6 +65,8 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
       const data = await response.json();
       onPostCreated(data.post);
       setContent("");
+      setImageFile(null);
+      setImagePreview(null); // Limpa a prévia da imagem
     } catch (error) {
       console.error("Erro ao criar post:", error);
       setError(error instanceof Error ? error.message : "Erro ao criar post");

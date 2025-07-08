@@ -3,29 +3,29 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
-import { 
-  BarsOutlined, 
-  BellOutlined, 
+import {
+  WechatWorkOutlined,
+  BellOutlined,
   DeleteOutlined,
   HeartOutlined,
   MessageOutlined,
   UserAddOutlined,
   ThunderboltOutlined,
-  EyeOutlined
+  EyeOutlined,
 } from "@ant-design/icons";
-import { 
-  Button, 
-  Drawer, 
-  Dropdown, 
-  Badge, 
-  List, 
-  Avatar, 
-  Typography, 
+import {
+  Button,
+  Drawer,
+  Dropdown,
+  Badge,
+  List,
+  Avatar,
+  Typography,
   Space,
   Popconfirm,
   message,
   Empty,
-  Spin
+  Spin,
 } from "antd";
 import Sidebar from "../Sidebar/Sidebar";
 
@@ -70,9 +70,9 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
 
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   useEffect(() => {
@@ -123,7 +123,7 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
   // 🆕 Função para limpar todas as notificações
   const clearAllNotifications = async () => {
     setClearingNotifications(true);
-    
+
     try {
       const response = await fetch("/api/notification", {
         method: "DELETE",
@@ -168,16 +168,16 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
   // 🆕 Obter ícone da notificação
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'like':
-        return <HeartOutlined style={{ color: '#ff4d4f' }} />;
-      case 'comment':
-        return <MessageOutlined style={{ color: '#1890ff' }} />;
-      case 'friend_request':
-        return <UserAddOutlined style={{ color: '#52c41a' }} />;
-      case 'game_session_created':
-        return <ThunderboltOutlined style={{ color: '#722ed1' }} />;
+      case "like":
+        return <HeartOutlined style={{ color: "#ff4d4f" }} />;
+      case "comment":
+        return <MessageOutlined style={{ color: "#1890ff" }} />;
+      case "friend_request":
+        return <UserAddOutlined style={{ color: "#52c41a" }} />;
+      case "game_session_created":
+        return <ThunderboltOutlined style={{ color: "#722ed1" }} />;
       default:
-        return <BellOutlined style={{ color: '#666' }} />;
+        return <BellOutlined style={{ color: "#666" }} />;
     }
   };
 
@@ -194,36 +194,43 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
     if (diffMins < 60) return `${diffMins}m`;
     if (diffHours < 24) return `${diffHours}h`;
     if (diffDays < 7) return `${diffDays}d`;
-    return date.toLocaleDateString('pt-BR');
+    return date.toLocaleDateString("pt-BR");
   };
 
   // 🆕 Dropdown de notificações responsivo
   const notificationDropdown = (
-    <div style={{ 
-      width: isMobile ? '90vw' : '400px',
-      maxWidth: isMobile ? '350px' : '400px',
-      maxHeight: isMobile ? '70vh' : '500px',
-      background: 'rgba(26, 26, 46, 0.95)',
-      borderRadius: '12px',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-      backdropFilter: 'blur(10px)',
-      overflow: 'hidden'
-    }}>
+    <div
+      style={{
+        width: isMobile ? "90vw" : "400px",
+        maxWidth: isMobile ? "350px" : "400px",
+        maxHeight: isMobile ? "70vh" : "500px",
+        background: "rgba(26, 26, 46, 0.95)",
+        borderRadius: "12px",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
+        backdropFilter: "blur(10px)",
+        overflow: "hidden",
+      }}
+    >
       {/* Header */}
-      <div style={{ 
-        padding: isMobile ? '12px' : '16px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        background: 'rgba(255, 255, 255, 0.05)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <Title level={5} style={{ 
-          margin: 0, 
-          color: '#fff',
-          fontSize: isMobile ? '14px' : '16px'
-        }}>
+      <div
+        style={{
+          padding: isMobile ? "12px" : "16px",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+          background: "rgba(255, 255, 255, 0.05)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Title
+          level={5}
+          style={{
+            margin: 0,
+            color: "#fff",
+            fontSize: isMobile ? "14px" : "16px",
+          }}
+        >
           Notificações
         </Title>
         {notifications.length > 0 && (
@@ -241,34 +248,36 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
               size="small"
               icon={<DeleteOutlined />}
               loading={clearingNotifications}
-              style={{ 
-                color: '#ff4d4f',
-                fontSize: isMobile ? '12px' : '14px'
+              style={{
+                color: "#ff4d4f",
+                fontSize: isMobile ? "12px" : "14px",
               }}
             >
-              {isMobile ? 'Limpar' : 'Limpar todas'}
+              {isMobile ? "Limpar" : "Limpar todas"}
             </Button>
           </Popconfirm>
         )}
       </div>
 
       {/* Conteúdo */}
-      <div style={{ 
-        maxHeight: isMobile ? '50vh' : '400px',
-        overflow: 'auto',
-        background: 'rgba(255, 255, 255, 0.02)'
-      }}>
+      <div
+        style={{
+          maxHeight: isMobile ? "50vh" : "400px",
+          overflow: "auto",
+          background: "rgba(255, 255, 255, 0.02)",
+        }}
+      >
         {loadingNotifications ? (
-          <div style={{ padding: '40px', textAlign: 'center' }}>
+          <div style={{ padding: "40px", textAlign: "center" }}>
             <Spin size="large" />
           </div>
         ) : notifications.length === 0 ? (
           <Empty
-            image={<BellOutlined style={{ fontSize: '48px', color: '#666' }} />}
+            image={<BellOutlined style={{ fontSize: "48px", color: "#666" }} />}
             description={
-              <span style={{ color: '#ccc' }}>Nenhuma notificação</span>
+              <span style={{ color: "#ccc" }}>Nenhuma notificação</span>
             }
-            style={{ padding: '40px' }}
+            style={{ padding: "40px" }}
           />
         ) : (
           <List
@@ -276,64 +285,94 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
             renderItem={(notification) => (
               <List.Item
                 style={{
-                  padding: isMobile ? '8px 12px' : '12px 16px',
-                  backgroundColor: notification.is_read 
-                    ? 'rgba(255, 255, 255, 0.02)' 
-                    : 'rgba(0, 212, 255, 0.1)',
-                  cursor: (notification.type === "like" || notification.type === "comment") ? 'pointer' : 'default',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                  transition: 'all 0.3s ease',
+                  padding: isMobile ? "8px 12px" : "12px 16px",
+                  backgroundColor: notification.is_read
+                    ? "rgba(255, 255, 255, 0.02)"
+                    : "rgba(0, 212, 255, 0.1)",
+                  cursor:
+                    notification.type === "like" ||
+                    notification.type === "comment"
+                      ? "pointer"
+                      : "default",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                  transition: "all 0.3s ease",
                 }}
                 onClick={() => handleNotificationClick(notification)}
                 actions={[
                   <Space key="actions">
-                    <Text type="secondary" style={{ fontSize: '12px', color: '#ccc' }}>
+                    <Text
+                      type="secondary"
+                      style={{ fontSize: "12px", color: "#ccc" }}
+                    >
                       {formatRelativeTime(notification.created_at)}
                     </Text>
                     {!notification.is_read && (
-                      <div style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        backgroundColor: '#00d4ff'
-                      }} />
+                      <div
+                        style={{
+                          width: "8px",
+                          height: "8px",
+                          borderRadius: "50%",
+                          backgroundColor: "#00d4ff",
+                        }}
+                      />
                     )}
-                  </Space>
+                  </Space>,
                 ]}
               >
                 <List.Item.Meta
                   avatar={
-                    <div style={{ position: 'relative' }}>
-                      <Avatar 
-                        src={notification.from_user_avatar || "/placeholder-user.jpg"}
+                    <div style={{ position: "relative" }}>
+                      <Avatar
+                        src={
+                          notification.from_user_avatar ||
+                          "/placeholder-user.jpg"
+                        }
                         size={isMobile ? 32 : 40}
                       />
-                      <div style={{
-                        position: 'absolute',
-                        bottom: -2,
-                        right: -2,
-                        background: 'rgba(26, 26, 46, 0.9)',
-                        borderRadius: '50%',
-                        padding: '2px',
-                        border: '1px solid rgba(255, 255, 255, 0.2)'
-                      }}>
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: -2,
+                          right: -2,
+                          background: "rgba(26, 26, 46, 0.9)",
+                          borderRadius: "50%",
+                          padding: "2px",
+                          border: "1px solid rgba(255, 255, 255, 0.2)",
+                        }}
+                      >
                         {getNotificationIcon(notification.type)}
                       </div>
                     </div>
                   }
                   title={
                     <div>
-                      {notification.type === "friend_request" && notification.from_user_name ? (
+                      {notification.type === "friend_request" &&
+                      notification.from_user_name ? (
                         <Space direction="vertical" size={0}>
-                          <Text strong style={{ color: '#fff', fontSize: isMobile ? '12px' : '14px' }}>
+                          <Text
+                            strong
+                            style={{
+                              color: "#fff",
+                              fontSize: isMobile ? "12px" : "14px",
+                            }}
+                          >
                             {notification.from_user_name}
                           </Text>
-                          <Text type="secondary" style={{ fontSize: '11px', color: '#ccc' }}>
+                          <Text
+                            type="secondary"
+                            style={{ fontSize: "11px", color: "#ccc" }}
+                          >
                             enviou um pedido de amizade
                           </Text>
                         </Space>
                       ) : (
-                        <Text strong style={{ fontSize: isMobile ? '12px' : '14px', color: '#fff' }}>
+                        <Text
+                          strong
+                          style={{
+                            fontSize: isMobile ? "12px" : "14px",
+                            color: "#fff",
+                          }}
+                        >
                           {notification.message}
                         </Text>
                       )}
@@ -343,14 +382,18 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
                     <div>
                       {/* Botões para pedido de amizade */}
                       {notification.type === "friend_request" && (
-                        <Space style={{ marginTop: '8px' }} size={isMobile ? 'small' : 'middle'}>
+                        <Space
+                          style={{ marginTop: "8px" }}
+                          size={isMobile ? "small" : "middle"}
+                        >
                           <Button
                             type="primary"
                             size="small"
                             style={{
-                              background: 'linear-gradient(45deg, #52c41a, #389e0d)',
-                              border: 'none',
-                              fontSize: isMobile ? '11px' : '12px'
+                              background:
+                                "linear-gradient(45deg, #52c41a, #389e0d)",
+                              border: "none",
+                              fontSize: isMobile ? "11px" : "12px",
                             }}
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -368,7 +411,9 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
                                 await markAsRead(notification.id);
                                 message.success("Pedido de amizade aceito!");
                               } catch (error) {
-                                message.error("Erro ao aceitar pedido de amizade");
+                                message.error(
+                                  "Erro ao aceitar pedido de amizade"
+                                );
                               }
                             }}
                           >
@@ -377,10 +422,10 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
                           <Button
                             size="small"
                             style={{
-                              background: 'rgba(255, 255, 255, 0.1)',
-                              border: '1px solid rgba(255, 255, 255, 0.2)',
-                              color: '#fff',
-                              fontSize: isMobile ? '11px' : '12px'
+                              background: "rgba(255, 255, 255, 0.1)",
+                              border: "1px solid rgba(255, 255, 255, 0.2)",
+                              color: "#fff",
+                              fontSize: isMobile ? "11px" : "12px",
                             }}
                             onClick={async (e) => {
                               e.stopPropagation();
@@ -398,7 +443,9 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
                                 await markAsRead(notification.id);
                                 message.info("Pedido de amizade recusado");
                               } catch (error) {
-                                message.error("Erro ao recusar pedido de amizade");
+                                message.error(
+                                  "Erro ao recusar pedido de amizade"
+                                );
                               }
                             }}
                           >
@@ -406,11 +453,15 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
                           </Button>
                         </Space>
                       )}
-                      
+
                       {/* Hint para outras notificações */}
-                      {(notification.type === "like" || notification.type === "comment") && (
-                        <div style={{ marginTop: '4px' }}>
-                          <Text type="secondary" style={{ fontSize: '10px', color: '#ccc' }}>
+                      {(notification.type === "like" ||
+                        notification.type === "comment") && (
+                        <div style={{ marginTop: "4px" }}>
+                          <Text
+                            type="secondary"
+                            style={{ fontSize: "10px", color: "#ccc" }}
+                          >
                             <EyeOutlined /> Clique para ver
                           </Text>
                         </div>
@@ -440,10 +491,6 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
           </div>
           <div className="header-actions">
             <nav className="header-nav">
-              <BarsOutlined
-                className="menu-icon-left mobile-only"
-                onClick={() => setDrawerOpen(true)}
-              />
               <button
                 onClick={() => onNavigate("feed")}
                 className={`nav-btn ${currentPage === "feed" ? "active" : ""}`}
@@ -475,31 +522,37 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
               {/* 🆕 Notificações com CSS class personalizada */}
               <Dropdown
                 overlay={notificationDropdown}
-                trigger={['click']}
+                trigger={["click"]}
                 open={showNotifications}
                 onOpenChange={setShowNotifications}
                 placement="bottomRight"
                 getPopupContainer={() => document.body}
-                overlayClassName={isMobile ? 'notification-dropdown-mobile' : ''}
-                overlayStyle={isMobile ? {
-                  position: 'fixed' as const,
-                  top: '60px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  right: 'auto',
-                  zIndex: 9999
-                } : {}}
+                overlayClassName={
+                  isMobile ? "notification-dropdown-mobile" : ""
+                }
+                overlayStyle={
+                  isMobile
+                    ? {
+                        position: "fixed" as const,
+                        top: "60px",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        right: "auto",
+                        zIndex: 9999,
+                      }
+                    : {}
+                }
               >
                 <Button
                   type="text"
                   icon={
                     <Badge count={unreadCount} size="small">
-                      <BellOutlined style={{ fontSize: '20px' }} />
+                      <BellOutlined style={{ fontSize: "20px" }} />
                     </Badge>
                   }
-                  style={{ 
-                    border: 'none',
-                    boxShadow: 'none'
+                  style={{
+                    border: "none",
+                    boxShadow: "none",
                   }}
                 />
               </Dropdown>
@@ -550,6 +603,17 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
                     <div className="dropdown-divider"></div>
 
                     <div className="dropdown-actions">
+                      <Button
+                      style={{ width: "100%", marginBottom: "8px" }}
+                      icon={<ThunderboltOutlined />}
+                        color="purple"
+                        onClick={() => {
+                          setDrawerOpen(true);
+                        }}
+                        variant="outlined"
+                      >
+                        Jogos
+                      </Button>
                       <button
                         className="dropdown-btn"
                         onClick={() => {

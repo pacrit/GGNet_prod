@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     categories: number[],
     avatarUrl?: string
   ) => {
-    const response = await fetch("/api/auth/signup", {
+    const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -1,3 +1,4 @@
+// filepath: c:\personal\GGNet_prod\app\page.tsx
 "use client"
 
 import { useState } from "react"
@@ -8,12 +9,15 @@ import Feed from "./components/Feed/Feed"
 import SquadPage from "./components/Squad/SquadPage"
 import Dashboard from "./components/Dashboard/Dashboard"
 import ChatDrawer from "./components/Chat/ChatDrawer"
+import PWAProvider from "./components/PWA/PWAProvider" // 🆕
+import InstallPrompt from "./components/PWA/InstallPrompt" // 🆕
+import { usePWA } from "./hooks/usePWA" // 🆕
 
-// Definir o tipo das páginas em um lugar central
 type PageType = "feed" | "squad" | "friends";
 
 function AppContent() {
-  const { currentUser, logout } = useAuth();
+  const { currentUser } = useAuth();
+  const { isOnline } = usePWA(); // 🆕
   const [currentPage, setCurrentPage] = useState<PageType>("feed");
   const [chatDrawer, setChatDrawer] = useState<{
     isOpen: boolean;
@@ -60,16 +64,38 @@ function AppContent() {
 
   return (
     <div className="app">
+      {/* 🆕 Indicador offline */}
+      {!isOnline && (
+        <div style={{
+          background: '#ff4d4f',
+          color: '#fff',
+          padding: '8px',
+          textAlign: 'center',
+          fontSize: '14px',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9999,
+        }}>
+          📡 Você está offline
+        </div>
+      )}
+
       <Header onNavigate={setCurrentPage} currentPage={currentPage} />
-      <main className="app-main">
+      <main className="app-main" style={{ marginTop: !isOnline ? '40px' : '0' }}>
         {renderCurrentPage()}
       </main>
+      
       <ChatDrawer
         isOpen={chatDrawer.isOpen}
         onClose={closeChat}
         recipientId={chatDrawer.recipientId}
         recipientName={chatDrawer.recipientName}
       />
+
+      {/* 🆕 Prompt de instalação */}
+      <InstallPrompt />
     </div>
   );
 }
@@ -77,7 +103,9 @@ function AppContent() {
 export default function HomePage() {
   return (
     <AuthProvider>
-      <AppContent />
+      <PWAProvider> {/* 🆕 */}
+        <AppContent />
+      </PWAProvider>
     </AuthProvider>
   )
 }
