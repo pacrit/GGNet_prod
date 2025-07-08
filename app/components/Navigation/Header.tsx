@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
 import {
@@ -26,7 +26,6 @@ import {
   message,
   Empty,
   Spin,
-  Tooltip,
 } from "antd";
 import Sidebar from "../Sidebar/Sidebar";
 
@@ -59,16 +58,12 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [clearingNotifications, setClearingNotifications] = useState(false);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  // 📱 Estado para detectar mobile
   const [isMobile, setIsMobile] = useState(false);
-  const [lastCheck, setLastCheck] = useState<string>(new Date().toISOString());
-
-  // Estados para Push Notifications
-  const [pushSupported, setPushSupported] = useState(false);
-  const [pushSubscribed, setPushSubscribed] = useState(false);
 
   const router = useRouter();
 
-  // Detectar mobile
+  // 📱 Detectar mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -76,209 +71,30 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
 
     checkMobile();
     window.addEventListener("resize", checkMobile);
+
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Função para buscar notificações
-  const fetchNotifications = useCallback(async (showNewNotification = false) => {
-    if (!token) return;
-
-    try {
-      setLoadingNotifications(true);
-      const response = await fetch('/api/notification', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const newNotifications = data.notifications || [];
-
-        // Verificar se há notificações novas
-        if (showNewNotification && notifications.length > 0) {
-          const currentIds = new Set(notifications.map(n => n.id));
-          const freshNotifications = newNotifications.filter((n: Notification) => 
-            !currentIds.has(n.id) && new Date(n.created_at) > new Date(lastCheck)
-          );
-
-          // Mostrar notificação do sistema para novas notificações
-          if (freshNotifications.length > 0) {
-            freshNotifications.forEach((notification: Notification) => {
-              showSystemNotification(notification);
-              playNotificationSound();
-            });
-          }
-        }
-
-        setNotifications(newNotifications);
-        setLastCheck(new Date().toISOString());
-      }
-    } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
-    } finally {
-      setLoadingNotifications(false);
-    }
-  }, [token, notifications.length, lastCheck]);
-
-  // 🔧 Som de notificação CORRIGIDO
-  const playNotificationSound = () => {
-    try {
-      // Usando um beep simples do sistema
-      if ('AudioContext' in window || 'webkitAudioContext' in window) {
-        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-        const audioContext = new AudioContext();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        gainNode.gain.value = 0.1;
-        
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.1);
-      }
-    } catch (error) {
-      // Ignorar erro de som
-      console.log('Som não disponível');
-    }
-  };
-
-  // 🔧 Notificação do sistema CORRIGIDA
-  const showSystemNotification = (notification: Notification) => {
-  if ('Notification' in window && Notification.permission === 'granted') {
-    const systemNotification = new Notification('GGNetworking', {
-      body: notification.message,
-      icon: '/favicon.ico',
-      tag: `notification-${notification.id}`,
-    });
-
-    systemNotification.onclick = () => {
-      window.focus();
-      if (notification.link) {
-        window.location.href = notification.link;
-      }
-      systemNotification.close();
-    };
-
-    // Auto fechar após 5 segundos
-    setTimeout(() => systemNotification.close(), 5000);
-  }
-};
-
-  // Solicitar permissão para notificações
-  const requestNotificationPermission = useCallback(async () => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        message.success('Notificações ativadas!');
-      }
-    }
-  }, []);
-
-  // 🆕 Função para ativar Push Notifications
-  const enablePushNotifications = async () => {
-    if (!pushSupported) {
-      message.error('Push notifications não são suportadas neste dispositivo');
-      return;
-    }
-
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        message.warning('Permissão para notificações negada');
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      
-      // Usar uma chave temporária para teste
-      const vapidKey = 'BMqSvZy8Q3Mm5rnXCNk7G-pGBnjfLCJjcq7rBqtXt5eBOr3oGnDUQrfKH7MtBkqT9WFOH2BKZj5Y2-Q3z8b9qG8';
-      
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
-      });
-
-      // Por enquanto, apenas mostrar sucesso (sem API)
-      setPushSubscribed(true);
-      message.success('Push notifications ativadas! (modo de teste)');
-      
-    } catch (error) {
-      console.error('Erro ao ativar push notifications:', error);
-      message.error('Erro ao ativar push notifications');
-    }
-  };
-
-  // 🆕 Função utilitária para VAPID key
-  const urlBase64ToUint8Array = (base64String: string) => {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
-
-  // useEffect para polling em tempo real
   useEffect(() => {
-    if (!currentUser || !token) return;
-
-    // Buscar inicial
-    fetchNotifications(false);
-
-    // Solicitar permissão de notificação (após 3 segundos)
-    const permissionTimer = setTimeout(() => {
-      requestNotificationPermission();
-    }, 3000);
-
-    // Polling a cada 10 segundos quando ativo
-    const interval = setInterval(() => {
-      if (!document.hidden) {
-        fetchNotifications(true);
+    // Buscar notificações do usuário logado
+    async function fetchNotifications() {
+      setLoadingNotifications(true);
+      try {
+        const res = await fetch("/api/notification", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+      } catch (error) {
+        console.error("Erro ao buscar notificações:", error);
+      } finally {
+        setLoadingNotifications(false);
       }
-    }, 10000);
-
-    // Buscar quando voltar para a aba
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchNotifications(true);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Verificar suporte a Push Notifications
-    const checkPushSupport = async () => {
-      if ('serviceWorker' in navigator && 'PushManager' in window) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          const subscription = await registration.pushManager.getSubscription();
-          setPushSupported(true);
-          setPushSubscribed(!!subscription);
-        } catch (error) {
-          console.error('Erro ao verificar push notifications:', error);
-        }
-      }
-    };
-
-    checkPushSupport();
-
-    return () => {
-      clearTimeout(permissionTimer);
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [currentUser, token, fetchNotifications, requestNotificationPermission]);
+    }
+    if (currentUser) fetchNotifications();
+  }, [currentUser, token]);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
@@ -304,6 +120,7 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
     }
   };
 
+  // 🆕 Função para limpar todas as notificações
   const clearAllNotifications = async () => {
     setClearingNotifications(true);
 
@@ -331,10 +148,15 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
   };
 
   const handleNotificationClick = (notification: Notification) => {
+    // Apenas redirecionar para notificações de like e comment
     if (notification.type === "like" || notification.type === "comment") {
+      // Marcar como lida ANTES de redirecionar
       markAsRead(notification.id);
+
+      // Fechar dropdown
       setShowNotifications(false);
 
+      // Redirecionar para o link da notificação
       setTimeout(() => {
         if (notification.link) {
           window.location.href = notification.link;
@@ -343,6 +165,7 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
     }
   };
 
+  // 🆕 Obter ícone da notificação
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "like":
@@ -358,6 +181,7 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
     }
   };
 
+  // 🆕 Formatar tempo relativo
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -373,44 +197,7 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
     return date.toLocaleDateString("pt-BR");
   };
 
-  const notificationButton = (
-    <Tooltip title="Notificações em tempo real ativadas">
-      <Button
-        type="text"
-        icon={
-          <Badge count={unreadCount} size="small">
-            <BellOutlined 
-              style={{ 
-                fontSize: "20px",
-                color: unreadCount > 0 ? "#00d4ff" : "inherit" 
-              }} 
-            />
-          </Badge>
-        }
-        style={{
-          border: "none",
-          boxShadow: "none",
-          position: "relative",
-        }}
-      >
-        {!loadingNotifications && (
-          <div
-            style={{
-              position: "absolute",
-              top: "2px",
-              right: "2px",
-              width: "6px",
-              height: "6px",
-              borderRadius: "50%",
-              backgroundColor: "#52c41a",
-              animation: "pulse 2s infinite",
-            }}
-          />
-        )}
-      </Button>
-    </Tooltip>
-  );
-
+  // 🆕 Dropdown de notificações responsivo
   const notificationDropdown = (
     <div
       style={{
@@ -425,95 +212,50 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
         overflow: "hidden",
       }}
     >
-      {/* Header com Push Notifications */}
+      {/* Header */}
       <div
         style={{
           padding: isMobile ? "12px" : "16px",
           borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
           background: "rgba(255, 255, 255, 0.05)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-          <Title
-            level={5}
-            style={{
-              margin: 0,
-              color: "#fff",
-              fontSize: isMobile ? "14px" : "16px",
-            }}
+        <Title
+          level={5}
+          style={{
+            margin: 0,
+            color: "#fff",
+            fontSize: isMobile ? "14px" : "16px",
+          }}
+        >
+          Notificações
+        </Title>
+        {notifications.length > 0 && (
+          <Popconfirm
+            title="Limpar todas as notificações?"
+            description="Esta ação não pode ser desfeita."
+            onConfirm={clearAllNotifications}
+            okText="Sim, limpar"
+            cancelText="Cancelar"
+            okButtonProps={{ danger: true }}
           >
-            Notificações
-            <span style={{ 
-              color: "#52c41a", 
-              fontSize: "10px", 
-              marginLeft: "8px" 
-            }}>
-              ● LIVE
-            </span>
-          </Title>
-          
-          {notifications.length > 0 && (
-            <Popconfirm
-              title="Limpar todas as notificações?"
-              description="Esta ação não pode ser desfeita."
-              onConfirm={clearAllNotifications}
-              okText="Sim"
-              cancelText="Não"
-              okButtonProps={{ 
-                loading: clearingNotifications,
-                style: { background: '#ff4d4f', borderColor: '#ff4d4f' }
+            <Button
+              type="text"
+              danger
+              size="small"
+              icon={<DeleteOutlined />}
+              loading={clearingNotifications}
+              style={{
+                color: "#ff4d4f",
+                fontSize: isMobile ? "12px" : "14px",
               }}
             >
-              <Button
-                type="text"
-                size="small"
-                icon={<DeleteOutlined />}
-                loading={clearingNotifications}
-                style={{ color: "#ff4d4f" }}
-              >
-                Limpar
-              </Button>
-            </Popconfirm>
-          )}
-        </div>
-
-        {/* 🆕 Push Notifications Toggle */}
-        {pushSupported && (
-          <div style={{ 
-            display: "flex", 
-            justifyContent: "space-between", 
-            alignItems: "center",
-            padding: "8px 0",
-            borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-            marginTop: "8px",
-          }}>
-            <Space>
-              <BellOutlined style={{ color: pushSubscribed ? '#52c41a' : '#666' }} />
-              <Text style={{ color: '#fff', fontSize: '12px' }}>
-                Push Notifications
-              </Text>
-              {pushSubscribed && (
-                <Text type="success" style={{ fontSize: '10px' }}>Ativas</Text>
-              )}
-            </Space>
-            
-            {!pushSubscribed ? (
-              <Button 
-                type="primary"
-                size="small"
-                onClick={enablePushNotifications}
-                style={{ 
-                  background: 'linear-gradient(135deg, #00d4ff, #0099cc)',
-                  border: 'none',
-                  fontSize: '10px',
-                }}
-              >
-                Ativar
-              </Button>
-            ) : (
-              <Text style={{ color: '#52c41a', fontSize: '10px' }}>✓ Ativo</Text>
-            )}
-          </div>
+              {isMobile ? "Limpar" : "Limpar todas"}
+            </Button>
+          </Popconfirm>
         )}
       </div>
 
@@ -544,65 +286,186 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
               <List.Item
                 style={{
                   padding: isMobile ? "8px 12px" : "12px 16px",
-                  borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  background: "transparent",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
+                  backgroundColor: notification.is_read
+                    ? "rgba(255, 255, 255, 0.02)"
+                    : "rgba(0, 212, 255, 0.1)",
+                  cursor:
+                    notification.type === "like" ||
+                    notification.type === "comment"
+                      ? "pointer"
+                      : "default",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                  transition: "all 0.3s ease",
                 }}
                 onClick={() => handleNotificationClick(notification)}
+                actions={[
+                  <Space key="actions">
+                    <Text
+                      type="secondary"
+                      style={{ fontSize: "12px", color: "#ccc" }}
+                    >
+                      {formatRelativeTime(notification.created_at)}
+                    </Text>
+                    {!notification.is_read && (
+                      <div
+                        style={{
+                          width: "8px",
+                          height: "8px",
+                          borderRadius: "50%",
+                          backgroundColor: "#00d4ff",
+                        }}
+                      />
+                    )}
+                  </Space>,
+                ]}
               >
                 <List.Item.Meta
                   avatar={
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      {getNotificationIcon(notification.type)}
-                      {notification.from_user_avatar ? (
-                        <Avatar
-                          src={notification.from_user_avatar}
-                          size={isMobile ? 32 : 40}
-                        />
-                      ) : (
-                        <Avatar
-                          icon={<UserAddOutlined />}
-                          size={isMobile ? 32 : 40}
-                          style={{ backgroundColor: "#00d4ff" }}
-                        />
-                      )}
+                    <div style={{ position: "relative" }}>
+                      <Avatar
+                        src={
+                          notification.from_user_avatar ||
+                          "/placeholder-user.jpg"
+                        }
+                        size={isMobile ? 32 : 40}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: -2,
+                          right: -2,
+                          background: "rgba(26, 26, 46, 0.9)",
+                          borderRadius: "50%",
+                          padding: "2px",
+                          border: "1px solid rgba(255, 255, 255, 0.2)",
+                        }}
+                      >
+                        {getNotificationIcon(notification.type)}
+                      </div>
                     </div>
                   }
                   title={
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <Text
-                        style={{
-                          color: "#fff",
-                          fontSize: isMobile ? "12px" : "14px",
-                          lineHeight: "1.4",
-                          flex: 1,
-                          marginRight: "8px",
-                        }}
-                      >
-                        {notification.message}
-                      </Text>
-                      <Text
-                        style={{
-                          color: "#8892b0",
-                          fontSize: "10px",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {formatRelativeTime(notification.created_at)}
-                      </Text>
+                    <div>
+                      {notification.type === "friend_request" &&
+                      notification.from_user_name ? (
+                        <Space direction="vertical" size={0}>
+                          <Text
+                            strong
+                            style={{
+                              color: "#fff",
+                              fontSize: isMobile ? "12px" : "14px",
+                            }}
+                          >
+                            {notification.from_user_name}
+                          </Text>
+                          <Text
+                            type="secondary"
+                            style={{ fontSize: "11px", color: "#ccc" }}
+                          >
+                            enviou um pedido de amizade
+                          </Text>
+                        </Space>
+                      ) : (
+                        <Text
+                          strong
+                          style={{
+                            fontSize: isMobile ? "12px" : "14px",
+                            color: "#fff",
+                          }}
+                        >
+                          {notification.message}
+                        </Text>
+                      )}
+                    </div>
+                  }
+                  description={
+                    <div>
+                      {/* Botões para pedido de amizade */}
+                      {notification.type === "friend_request" && (
+                        <Space
+                          style={{ marginTop: "8px" }}
+                          size={isMobile ? "small" : "middle"}
+                        >
+                          <Button
+                            type="primary"
+                            size="small"
+                            style={{
+                              background:
+                                "linear-gradient(45deg, #52c41a, #389e0d)",
+                              border: "none",
+                              fontSize: isMobile ? "11px" : "12px",
+                            }}
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                await fetch("/api/friends/accept", {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                  body: JSON.stringify({
+                                    fromUserId: notification.from_user_id,
+                                  }),
+                                });
+                                await markAsRead(notification.id);
+                                message.success("Pedido de amizade aceito!");
+                              } catch (error) {
+                                message.error(
+                                  "Erro ao aceitar pedido de amizade"
+                                );
+                              }
+                            }}
+                          >
+                            Aceitar
+                          </Button>
+                          <Button
+                            size="small"
+                            style={{
+                              background: "rgba(255, 255, 255, 0.1)",
+                              border: "1px solid rgba(255, 255, 255, 0.2)",
+                              color: "#fff",
+                              fontSize: isMobile ? "11px" : "12px",
+                            }}
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                await fetch("/api/friends/reject", {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${token}`,
+                                  },
+                                  body: JSON.stringify({
+                                    fromUserId: notification.from_user_id,
+                                  }),
+                                });
+                                await markAsRead(notification.id);
+                                message.info("Pedido de amizade recusado");
+                              } catch (error) {
+                                message.error(
+                                  "Erro ao recusar pedido de amizade"
+                                );
+                              }
+                            }}
+                          >
+                            Recusar
+                          </Button>
+                        </Space>
+                      )}
+
+                      {/* Hint para outras notificações */}
+                      {(notification.type === "like" ||
+                        notification.type === "comment") && (
+                        <div style={{ marginTop: "4px" }}>
+                          <Text
+                            type="secondary"
+                            style={{ fontSize: "10px", color: "#ccc" }}
+                          >
+                            <EyeOutlined /> Clique para ver
+                          </Text>
+                        </div>
+                      )}
                     </div>
                   }
                 />
@@ -656,7 +519,7 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
             </nav>
 
             <div className="header-right">
-              {/* 🔄 USAR o novo botão de notificação */}
+              {/* 🆕 Notificações com CSS class personalizada */}
               <Dropdown
                 overlay={notificationDropdown}
                 trigger={["click"]}
@@ -680,7 +543,18 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
                     : {}
                 }
               >
-                {notificationButton} {/* 🔄 USAR nova variável */}
+                <Button
+                  type="text"
+                  icon={
+                    <Badge count={unreadCount} size="small">
+                      <BellOutlined style={{ fontSize: "20px" }} />
+                    </Badge>
+                  }
+                  style={{
+                    border: "none",
+                    boxShadow: "none",
+                  }}
+                />
               </Dropdown>
 
               {/* Menu do usuário */}
@@ -824,21 +698,6 @@ export default function Header({ onNavigate, currentPage }: HeaderProps) {
       <div className="sidebar-desktop">
         <Sidebar />
       </div>
-
-      {/* 🆕 CSS para animação do indicador */}
-      <style jsx>{`
-        @keyframes pulse {
-          0% {
-            box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.7);
-          }
-          70% {
-            box-shadow: 0 0 0 6px rgba(82, 196, 26, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
-          }
-        }
-      `}</style>
     </div>
   );
 }
