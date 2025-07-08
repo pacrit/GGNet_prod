@@ -50,72 +50,66 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch
+// 🔧 FETCH - CORRIGIDO PARA NÃO INTERCEPTAR APIs
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  
-  // Ignorar requisições não-HTTP
-  if (!request.url.startsWith('http')) return;
+  const url = new URL(request.url);
 
-  // Network First para APIs
-  if (request.url.includes('/api/')) {
-    event.respondWith(networkFirst(request));
-    return;
+  // 🚨 IGNORAR COMPLETAMENTE requisições de API
+  if (url.pathname.startsWith('/api/')) {
+    console.log('🔄 API request - deixando passar:', url.pathname);
+    return; // ✅ NÃO INTERCEPTA
   }
 
-  // Cache First para assets
+  // 🚨 IGNORAR requisições para Cloudinary
+  if (url.hostname.includes('cloudinary.com')) {
+    console.log('☁️ Cloudinary request - deixando passar:', url.hostname);
+    return; // ✅ NÃO INTERCEPTA
+  }
+
+  // 🚨 IGNORAR requisições não-HTTP
+  if (!request.url.startsWith('http')) {
+    return; // ✅ NÃO INTERCEPTA
+  }
+
+  // 🚨 IGNORAR Chrome Extensions
+  if (url.protocol === 'chrome-extension:') {
+    return; // ✅ NÃO INTERCEPTA
+  }
+
+  // 🚨 IGNORAR _next (Next.js internos)
+  if (url.pathname.startsWith('/_next/')) {
+    return; // ✅ NÃO INTERCEPTA
+  }
+
+  // ✅ APENAS cachear assets estáticos
   if (request.destination === 'image' || 
       request.destination === 'font' ||
-      request.destination === 'style') {
+      request.destination === 'style' ||
+      request.destination === 'script') {
     event.respondWith(cacheFirst(request));
     return;
   }
 
-  // Stale While Revalidate para navegação
+  // ✅ APENAS para navegação (HTML pages)
   if (request.mode === 'navigate') {
     event.respondWith(staleWhileRevalidate(request));
     return;
   }
 
-  // Network First por padrão
-  event.respondWith(networkFirst(request));
+  // 🚨 TUDO MAIS: deixar passar normalmente
+  // NÃO interceptar nada mais
 });
 
-// Network First
-async function networkFirst(request) {
+// Cache First - apenas para assets
+async function cacheFirst(request) {
   try {
-    const response = await fetch(request);
-    
-    if (response.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      cache.put(request, response.clone());
-    }
-    
-    return response;
-  } catch (error) {
     const cachedResponse = await caches.match(request);
     
     if (cachedResponse) {
       return cachedResponse;
     }
     
-    if (request.mode === 'navigate') {
-      return caches.match('/offline.html');
-    }
-    
-    throw error;
-  }
-}
-
-// Cache First
-async function cacheFirst(request) {
-  const cachedResponse = await caches.match(request);
-  
-  if (cachedResponse) {
-    return cachedResponse;
-  }
-  
-  try {
     const response = await fetch(request);
     
     if (response.ok) {
@@ -125,23 +119,29 @@ async function cacheFirst(request) {
     
     return response;
   } catch (error) {
+    console.log('❌ Erro no cacheFirst:', error);
     throw error;
   }
 }
 
-// Stale While Revalidate
+// Stale While Revalidate - apenas para navegação
 async function staleWhileRevalidate(request) {
-  const cache = await caches.open(DYNAMIC_CACHE);
-  const cachedResponse = await cache.match(request);
-  
-  const fetchPromise = fetch(request)
-    .then((response) => {
-      if (response.ok) {
-        cache.put(request, response.clone());
-      }
-      return response;
-    })
-    .catch(() => cachedResponse);
-  
-  return cachedResponse || fetchPromise;
+  try {
+    const cache = await caches.open(DYNAMIC_CACHE);
+    const cachedResponse = await cache.match(request);
+    
+    const fetchPromise = fetch(request)
+      .then((response) => {
+        if (response.ok) {
+          cache.put(request, response.clone());
+        }
+        return response;
+      })
+      .catch(() => cachedResponse || caches.match('/offline.html'));
+    
+    return cachedResponse || fetchPromise;
+  } catch (error) {
+    console.log('❌ Erro no staleWhileRevalidate:', error);
+    return caches.match('/offline.html');
+  }
 }
