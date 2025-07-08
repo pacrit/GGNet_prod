@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     const { content, image_url } = await request.json()
 
-    if (!content || !content.trim()) {
+    if ((!content || !content.trim()) && !image_url) {
       return NextResponse.json({ error: "Conteúdo é obrigatório" }, { status: 400 })
     }
 

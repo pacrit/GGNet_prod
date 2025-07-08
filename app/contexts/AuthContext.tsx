@@ -1,221 +1,147 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
-  id: number
-  email: string
-  displayName: string
-  avatarUrl?: string
-  categories?:Array<number>
+  id: number;
+  email: string;
+  displayName: string;
+  avatarUrl?: string;
+  createdAt: string;
 }
 
 interface AuthContextType {
-  currentUser: User | null
-  signup: (email: string, password: string, displayName: string, categories:Array<number>, avatarUrl?: string ) => Promise<void>
-  login: (email: string, password: string) => Promise<void>
-  logout: () => void
-  token: string | null
-  loading: boolean
+  currentUser: User | null;
+  token: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (
+    email: string,
+    password: string,
+    displayName: string,
+    categories: number[],
+    avatarUrl?: string
+  ) => Promise<void>;
+  logout: () => void;
+  updateUser: (userData: User) => void; // 🆕 Adicionar updateUser
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
-  return context
-}
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar se há token salvo no localStorage
-    if (typeof window !== "undefined") {
+    // Verificar se há um token salvo
+    const savedToken = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
+
+    if (savedToken && savedUser) {
+      setToken(savedToken);
       try {
-        const savedToken = localStorage.getItem("auth_token")
-        const savedUser = localStorage.getItem("auth_user")
-
-        if (savedToken && savedUser) {
-          const userData = JSON.parse(savedUser)
-
-          // Validar estrutura dos dados salvos
-          if (userData.id && userData.email && userData.displayName) {
-            setToken(savedToken)
-            setCurrentUser(userData)
-          } else {
-            // Dados inválidos, limpar
-            localStorage.removeItem("auth_token")
-            localStorage.removeItem("auth_user")
-          }
-        }
+        setCurrentUser(JSON.parse(savedUser));
       } catch (error) {
-        console.error("Erro ao carregar dados salvos:", error)
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("auth_token")
-          localStorage.removeItem("auth_user")
-        }
+        console.error("Erro ao parsear usuário salvo:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
       }
     }
+    setLoading(false);
+  }, []);
 
-    setLoading(false)
-  }, [])
+  const login = async (email: string, password: string) => {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
 
-  // Função para salvar dados de autenticação
-  const saveAuthData = (token: string, user: User) => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("auth_token", token)
-        localStorage.setItem("auth_user", JSON.stringify(user))
-        setToken(token)
-        setCurrentUser(user)
-      } catch (error) {
-        console.error("Erro ao salvar dados de autenticação:", error)
-        throw new Error("Falha ao salvar dados de autenticação")
-      }
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Erro no login");
     }
-  }
 
-  // Função para fazer requisições com melhor tratamento de erro
-  const makeAuthRequest = async (url: string, data: any) => {
-    try {
-      console.log("Fazendo requisição para:", url, "com dados:", { ...data, password: "***" })
-      console.log('Data: ', data)
+    setToken(data.token);
+    setCurrentUser(data.user);
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      })
+    // Salvar no localStorage
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+  };
 
-      console.log("Status da resposta:", response.status)
-      console.log("Headers da resposta:", Object.fromEntries(response.headers.entries()))
-
-      // Verificar se a resposta é JSON
-      const contentType = response.headers.get("content-type")
-      if (!contentType || !contentType.includes("application/json")) {
-        console.error("Resposta não é JSON. Content-Type:", contentType)
-        const textResponse = await response.text()
-        console.error("Resposta como texto:", textResponse)
-        throw new Error("Resposta inválida do servidor (não é JSON)")
-      }
-
-      const responseData = await response.json()
-      console.log("Dados da resposta:", { ...responseData, token: responseData.token ? "***" : undefined })
-
-      if (!response.ok) {
-        console.error("Resposta com erro:", responseData)
-        throw new Error(responseData.error || `Erro ${response.status}: ${response.statusText}`)
-      }
-
-      // Validar estrutura da resposta
-      if (!responseData.token) {
-        console.error("Token ausente na resposta:", responseData)
-        throw new Error("Token ausente na resposta do servidor")
-      }
-
-      if (!responseData.user) {
-        console.error("Dados do usuário ausentes na resposta:", responseData)
-        throw new Error("Dados do usuário ausentes na resposta do servidor")
-      }
-
-      if (!responseData.user.id || !responseData.user.email || !responseData.user.displayName) {
-        console.error("Estrutura do usuário inválida:", responseData.user)
-        throw new Error("Estrutura do usuário inválida na resposta do servidor")
-      }
-
-      return responseData
-    } catch (error) {
-      console.error("Erro na requisição:", error)
-      if (error instanceof Error) {
-        throw error
-      }
-      throw new Error("Erro de conexão com o servidor")
-    }
-  }
-
-  // Cadastro
-  async function signup(email: string, password: string, displayName: string, categories:Array<number>, avatarUrl?: string) {
-    try {
-      // Validações básicas
-      if (!email || !password || !displayName) {
-        throw new Error("Todos os campos são obrigatórios")
-      }
-
-      if (password.length < 6) {
-        throw new Error("A senha deve ter pelo menos 6 caracteres")
-      }
-
-      console.log("Iniciando cadastro para:", email)
-
-      const data = await makeAuthRequest("/api/auth/register", {
-        email: email.trim(),
+  const signup = async (
+    email: string,
+    password: string,
+    displayName: string,
+    categories: number[],
+    avatarUrl?: string
+  ) => {
+    const response = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
         password,
-        displayName: displayName.trim(),
-        avatar_url: avatarUrl,
-        categories
-      })
+        displayName,
+        categories,
+        avatarUrl,
+      }),
+    });
 
-      console.log("Cadastro bem-sucedido, salvando dados...")
-      saveAuthData(data.token, data.user)
-    } catch (error) {
-      console.error("Erro no signup:", error)
-      throw error
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Erro no cadastro");
     }
-  }
 
-  // Login
-  async function login(email: string, password: string) {
-    try {
-      // Validações básicas
-      if (!email || !password) {
-        throw new Error("Email e senha são obrigatórios")
-      }
+    setToken(data.token);
+    setCurrentUser(data.user);
 
-      console.log("Iniciando login para:", email)
+    // Salvar no localStorage
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+  };
 
-      const data = await makeAuthRequest("/api/auth/login", {
-        email: email.trim(),
-        password,
-      })
+  // 🆕 Função para atualizar dados do usuário
+  const updateUser = (userData: User) => {
+    setCurrentUser(userData);
+    // Atualizar localStorage também
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
 
-      console.log("Login bem-sucedido, salvando dados...")
-      saveAuthData(data.token, data.user)
-    } catch (error) {
-      console.error("Erro no login:", error)
-      throw error
-    }
-  }
-
-  // Logout
-  function logout() {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem("auth_token")
-        localStorage.removeItem("auth_user")
-      } catch (error) {
-        console.error("Erro ao limpar dados de autenticação:", error)
-      }
-    }
-    setToken(null)
-    setCurrentUser(null)
-  }
+  const logout = () => {
+    setCurrentUser(null);
+    setToken(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+  };
 
   const value = {
     currentUser,
-    signup,
-    login,
-    logout,
     token,
-    loading,
+    login,
+    signup,
+    logout,
+    updateUser, // 🆕 Adicionar à interface
+  };
+
+  if (loading) {
+    return <div>Carregando...</div>;
   }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth deve ser usado dentro de um AuthProvider");
+  }
+  return context;
 }

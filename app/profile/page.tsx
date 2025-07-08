@@ -2,6 +2,8 @@
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { useState, useEffect } from "react";
 import PostCard from "../components/Feed/PostCard";
+import EditProfileModal from "./EditiProfileModal";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 interface Post {
   id: number;
@@ -20,6 +22,8 @@ function ProfilePage() {
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const fetchUserPosts = async () => {
     try {
@@ -109,24 +113,39 @@ function ProfilePage() {
     }
   };
 
+  const handleProfileUpdated = () => {
+    // Recarregar posts se o nome mudou
+    fetchUserPosts();
+  };
+
   if (!currentUser) return <p>Carregando...</p>;
 
   return (
     <div>
-      
       <div className="profile-container">
         <button
-        className="profile-back-btn"
-        onClick={() => {
-          window.location.href = "/";
-        }}
-      >
-        <span className="btn-icon-back">←</span>
-        Voltar
-      </button>
+          className="profile-back-btn"
+          onClick={() => {
+            window.location.href = "/";
+          }}
+        >
+          <span className="btn-icon-back">←</span>
+          Voltar
+        </button>
+        
         <div className="profile-actions">
-          <button className="profile-edit-btn">Editar Perfil</button>
-          <button className="profile-delete-btn">Excluir Conta</button>
+          <button 
+            className="profile-edit-btn"
+            onClick={() => setEditModalOpen(true)}
+          >
+            Editar Perfil
+          </button>
+          <button 
+            className="profile-delete-btn"
+            onClick={() => setDeleteModalOpen(true)}
+          >
+            Excluir Conta
+          </button>
         </div>
         <div className="profile-header">
           <img
@@ -199,6 +218,18 @@ function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      <EditProfileModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onProfileUpdated={handleProfileUpdated}
+      />
+
+      <DeleteAccountModal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+      />
     </div>
   );
 }
