@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  Modal, 
-  Form, 
-  Input, 
-  Button, 
-  message, 
+import {
+  Modal,
+  Form,
+  Input,
+  Button,
+  message,
   Alert,
   Checkbox,
-  Space 
+  Space,
 } from "antd";
-import { 
-  DeleteOutlined, 
-  LockOutlined, 
-  ExclamationCircleOutlined 
+import {
+  DeleteOutlined,
+  LockOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -23,7 +23,10 @@ interface DeleteAccountModalProps {
   onClose: () => void;
 }
 
-export default function DeleteAccountModal({ open, onClose }: DeleteAccountModalProps) {
+export default function DeleteAccountModal({
+  open,
+  onClose,
+}: DeleteAccountModalProps) {
   const { currentUser, token, logout } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -31,37 +34,38 @@ export default function DeleteAccountModal({ open, onClose }: DeleteAccountModal
 
   const handleDeleteAccount = async (values: any) => {
     if (!confirmDelete) {
-      message.error('Você deve confirmar que deseja excluir sua conta');
+      message.error("Você deve confirmar que deseja excluir sua conta");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch('/api/user/delete', {
-        method: 'DELETE',
+      // 🔧 Atualizar URL para /api/users
+      const response = await fetch("/api/users", {
+        method: "DELETE",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           password: values.password,
-          confirmation: values.confirmation
+          confirmation: values.confirmation,
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        message.success('Conta excluída com sucesso');
-        logout(); // Fazer logout
-        window.location.href = '/login'; // Redirecionar para login
+        message.success("Conta excluída com sucesso");
+        logout();
+        window.location.href = "/login";
       } else {
-        message.error(data.error || 'Erro ao excluir conta');
+        message.error(data.error || "Erro ao excluir conta");
       }
     } catch (error) {
-      console.error('Erro ao excluir conta:', error);
-      message.error('Erro ao excluir conta');
+      console.error("Erro ao excluir conta:", error);
+      message.error("Erro ao excluir conta");
     } finally {
       setLoading(false);
     }
@@ -70,7 +74,14 @@ export default function DeleteAccountModal({ open, onClose }: DeleteAccountModal
   return (
     <Modal
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ff4d4f' }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            color: "#ff4d4f",
+          }}
+        >
           <DeleteOutlined />
           <span>Excluir Conta</span>
         </div>
@@ -85,31 +96,29 @@ export default function DeleteAccountModal({ open, onClose }: DeleteAccountModal
         description="Esta ação não pode ser desfeita. Todos os seus dados, posts, comentários e curtidas serão permanentemente removidos."
         type="error"
         showIcon
-        style={{ marginBottom: '24px' }}
+        style={{ marginBottom: "24px" }}
       />
 
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleDeleteAccount}
-      >
+      <Form form={form} layout="vertical" onFinish={handleDeleteAccount}>
         {/* Confirmation Text */}
         <Form.Item
           label={`Digite "EXCLUIR ${currentUser?.displayName?.toUpperCase()}" para confirmar`}
           name="confirmation"
           rules={[
-            { required: true, message: 'Confirmação obrigatória' },
+            { required: true, message: "Confirmação obrigatória" },
             {
               validator: (_, value) => {
-                if (value !== `EXCLUIR ${currentUser?.displayName?.toUpperCase()}`) {
-                  return Promise.reject('Texto de confirmação incorreto');
+                if (
+                  value !== `EXCLUIR ${currentUser?.displayName?.toUpperCase()}`
+                ) {
+                  return Promise.reject("Texto de confirmação incorreto");
                 }
                 return Promise.resolve();
               },
             },
           ]}
         >
-          <Input 
+          <Input
             placeholder={`Digite: EXCLUIR ${currentUser?.displayName?.toUpperCase()}`}
             size="large"
           />
@@ -119,25 +128,24 @@ export default function DeleteAccountModal({ open, onClose }: DeleteAccountModal
         <Form.Item
           label="Digite sua senha para confirmar"
           name="password"
-          rules={[
-            { required: true, message: 'Senha é obrigatória' }
-          ]}
+          rules={[{ required: true, message: "Senha é obrigatória" }]}
         >
-          <Input.Password 
-            prefix={<LockOutlined />} 
-            placeholder="Sua senha atual" 
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Sua senha atual"
             size="large"
           />
         </Form.Item>
 
         {/* Final Confirmation */}
         <Form.Item>
-          <Checkbox 
+          <Checkbox
             checked={confirmDelete}
             onChange={(e) => setConfirmDelete(e.target.checked)}
           >
-            <span style={{ color: '#ff4d4f', fontWeight: '600' }}>
-              Eu entendo que esta ação é irreversível e quero excluir minha conta permanentemente
+            <span style={{ color: "#ff4d4f", fontWeight: "600" }}>
+              Eu entendo que esta ação é irreversível e quero excluir minha
+              conta permanentemente
             </span>
           </Checkbox>
         </Form.Item>
@@ -146,7 +154,7 @@ export default function DeleteAccountModal({ open, onClose }: DeleteAccountModal
         <Alert
           message="O que será excluído:"
           description={
-            <ul style={{ marginBottom: 0, paddingLeft: '20px' }}>
+            <ul style={{ marginBottom: 0, paddingLeft: "20px" }}>
               <li>Perfil e informações pessoais</li>
               <li>Todos os posts e imagens</li>
               <li>Comentários e curtidas</li>
@@ -155,19 +163,19 @@ export default function DeleteAccountModal({ open, onClose }: DeleteAccountModal
             </ul>
           }
           type="warning"
-          style={{ marginBottom: '24px' }}
+          style={{ marginBottom: "24px" }}
         />
 
         {/* Actions */}
         <Form.Item style={{ marginBottom: 0 }}>
-          <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+          <Space style={{ width: "100%", justifyContent: "flex-end" }}>
             <Button onClick={onClose} size="large">
               Cancelar
             </Button>
-            <Button 
-              type="primary" 
+            <Button
+              type="primary"
               danger
-              htmlType="submit" 
+              htmlType="submit"
               loading={loading}
               disabled={!confirmDelete}
               size="large"

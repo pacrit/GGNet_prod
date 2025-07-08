@@ -1,22 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  Modal, 
-  Form, 
-  Input, 
-  Upload, 
-  Button, 
-  message, 
+import {
+  Modal,
+  Form,
+  Input,
+  Upload,
+  Button,
+  message,
   Avatar,
   Space,
-  Divider 
+  Divider,
 } from "antd";
-import { 
-  UserOutlined, 
-  LockOutlined, 
-  UploadOutlined, 
-  EditOutlined 
+import {
+  UserOutlined,
+  LockOutlined,
+  UploadOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -26,16 +26,18 @@ interface EditProfileModalProps {
   onProfileUpdated: () => void;
 }
 
-export default function EditProfileModal({ 
-  open, 
-  onClose, 
-  onProfileUpdated 
+export default function EditProfileModal({
+  open,
+  onClose,
+  onProfileUpdated,
 }: EditProfileModalProps) {
   const { currentUser, token, updateUser } = useAuth();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [newAvatarUrl, setNewAvatarUrl] = useState(currentUser?.avatarUrl || "");
+  const [newAvatarUrl, setNewAvatarUrl] = useState(
+    currentUser?.avatarUrl || ""
+  );
 
   // 🔧 Função para upload direto no Cloudinary
   async function uploadToCloudinary(file: File) {
@@ -47,26 +49,26 @@ export default function EditProfileModal({
       `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
       { method: "POST", body: formData }
     );
-    
+
     if (!res.ok) {
       throw new Error("Erro no upload para Cloudinary");
     }
-    
+
     const data = await res.json();
     return data.secure_url;
   }
 
   const handleAvatarUpload = async (file: File) => {
     setUploadingAvatar(true);
-    
+
     try {
       // 🔧 Usar upload direto para Cloudinary
       const avatarUrl = await uploadToCloudinary(file);
       setNewAvatarUrl(avatarUrl);
-      message.success('Avatar enviado com sucesso!');
+      message.success("Avatar enviado com sucesso!");
     } catch (error) {
-      console.error('Erro no upload:', error);
-      message.error('Erro ao enviar avatar');
+      console.error("Erro no upload:", error);
+      message.error("Erro ao enviar avatar");
     } finally {
       setUploadingAvatar(false);
     }
@@ -84,7 +86,7 @@ export default function EditProfileModal({
       // Só incluir senha se foi preenchida
       if (values.newPassword) {
         if (values.newPassword !== values.confirmPassword) {
-          message.error('As senhas não coincidem');
+          message.error("As senhas não coincidem");
           setLoading(false);
           return;
         }
@@ -92,10 +94,11 @@ export default function EditProfileModal({
         updateData.new_password = values.newPassword;
       }
 
-      const response = await fetch('/api/user/profile', {
-        method: 'PATCH',
+      // 🔧 Atualizar URL para /api/users
+      const response = await fetch("/api/users", {
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(updateData),
@@ -104,18 +107,18 @@ export default function EditProfileModal({
       const data = await response.json();
 
       if (response.ok) {
-        message.success('Perfil atualizado com sucesso!');
-        updateUser(data.user); // Atualizar contexto
+        message.success("Perfil atualizado com sucesso!");
+        updateUser(data.user);
         onProfileUpdated();
         onClose();
         form.resetFields();
-        setNewAvatarUrl(""); // Reset avatar URL
+        setNewAvatarUrl("");
       } else {
-        message.error(data.error || 'Erro ao atualizar perfil');
+        message.error(data.error || "Erro ao atualizar perfil");
       }
     } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      message.error('Erro ao atualizar perfil');
+      console.error("Erro ao atualizar perfil:", error);
+      message.error("Erro ao atualizar perfil");
     } finally {
       setLoading(false);
     }
@@ -124,22 +127,22 @@ export default function EditProfileModal({
   const uploadProps = {
     beforeUpload: (file: File) => {
       // Validar tipo de arquivo
-      const isImage = file.type.startsWith('image/');
+      const isImage = file.type.startsWith("image/");
       if (!isImage) {
-        message.error('Você só pode enviar arquivos de imagem!');
+        message.error("Você só pode enviar arquivos de imagem!");
         return false;
       }
-      
+
       // Validar tamanho (máximo 2MB)
       const isLt2M = file.size / 1024 / 1024 < 2;
       if (!isLt2M) {
-        message.error('A imagem deve ter menos de 2MB!');
+        message.error("A imagem deve ter menos de 2MB!");
         return false;
       }
 
       // Validar se o Cloudinary está configurado
       if (!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME) {
-        message.error('Cloudinary não configurado');
+        message.error("Cloudinary não configurado");
         return false;
       }
 
@@ -160,7 +163,7 @@ export default function EditProfileModal({
   return (
     <Modal
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <EditOutlined />
           <span>Editar Perfil</span>
         </div>
@@ -185,47 +188,49 @@ export default function EditProfileModal({
         }}
       >
         {/* Avatar Section */}
-        <div style={{ 
-          textAlign: 'center', 
-          marginBottom: '24px',
-          padding: '20px',
-          background: '#f5f5f5',
-          borderRadius: '8px'
-        }}>
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "24px",
+            padding: "20px",
+            background: "#f5f5f5",
+            borderRadius: "8px",
+          }}
+        >
           <Avatar
             size={80}
             src={newAvatarUrl || currentUser?.avatarUrl}
             icon={<UserOutlined />}
-            style={{ marginBottom: '16px' }}
+            style={{ marginBottom: "16px" }}
           />
           <br />
           <Upload {...uploadProps}>
-            <Button 
-              icon={<UploadOutlined />} 
+            <Button
+              icon={<UploadOutlined />}
               loading={uploadingAvatar}
               type="primary"
               ghost
               disabled={!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}
             >
-              {uploadingAvatar ? 'Enviando...' : 'Alterar Avatar'}
+              {uploadingAvatar ? "Enviando..." : "Alterar Avatar"}
             </Button>
           </Upload>
-          <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
-            {process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ? (
-              'Formatos: JPG, PNG, GIF | Máximo: 2MB'
-            ) : (
-              'Cloudinary não configurado'
-            )}
+          <div style={{ fontSize: "12px", color: "#666", marginTop: "8px" }}>
+            {process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
+              ? "Formatos: JPG, PNG, GIF | Máximo: 2MB"
+              : "Cloudinary não configurado"}
           </div>
-          
+
           {/* 🆕 Preview da URL atual */}
           {newAvatarUrl && newAvatarUrl !== currentUser?.avatarUrl && (
-            <div style={{ 
-              fontSize: '11px', 
-              color: '#52c41a', 
-              marginTop: '4px',
-              wordBreak: 'break-all'
-            }}>
+            <div
+              style={{
+                fontSize: "11px",
+                color: "#52c41a",
+                marginTop: "4px",
+                wordBreak: "break-all",
+              }}
+            >
               ✅ Novo avatar carregado
             </div>
           )}
@@ -236,14 +241,14 @@ export default function EditProfileModal({
           label="Nome de Exibição"
           name="displayName"
           rules={[
-            { required: true, message: 'Nome é obrigatório' },
-            { min: 2, message: 'Nome deve ter pelo menos 2 caracteres' },
-            { max: 50, message: 'Nome deve ter no máximo 50 caracteres' }
+            { required: true, message: "Nome é obrigatório" },
+            { min: 2, message: "Nome deve ter pelo menos 2 caracteres" },
+            { max: 50, message: "Nome deve ter no máximo 50 caracteres" },
           ]}
         >
-          <Input 
-            prefix={<UserOutlined />} 
-            placeholder="Seu nome de exibição" 
+          <Input
+            prefix={<UserOutlined />}
+            placeholder="Seu nome de exibição"
             size="large"
           />
         </Form.Item>
@@ -254,21 +259,21 @@ export default function EditProfileModal({
         <Form.Item
           label="Senha Atual"
           name="currentPassword"
-          dependencies={['newPassword']}
+          dependencies={["newPassword"]}
           rules={[
             ({ getFieldValue }) => ({
               validator(_, value) {
-                if (getFieldValue('newPassword') && !value) {
-                  return Promise.reject('Digite sua senha atual');
+                if (getFieldValue("newPassword") && !value) {
+                  return Promise.reject("Digite sua senha atual");
                 }
                 return Promise.resolve();
               },
             }),
           ]}
         >
-          <Input.Password 
-            prefix={<LockOutlined />} 
-            placeholder="Digite sua senha atual" 
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Digite sua senha atual"
             size="large"
           />
         </Form.Item>
@@ -281,16 +286,18 @@ export default function EditProfileModal({
             ({ getFieldValue }) => ({
               validator(_, value) {
                 if (value && value.length < 6) {
-                  return Promise.reject('Nova senha deve ter pelo menos 6 caracteres');
+                  return Promise.reject(
+                    "Nova senha deve ter pelo menos 6 caracteres"
+                  );
                 }
                 return Promise.resolve();
               },
             }),
           ]}
         >
-          <Input.Password 
-            prefix={<LockOutlined />} 
-            placeholder="Digite uma nova senha (opcional)" 
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Digite uma nova senha (opcional)"
             size="large"
           />
         </Form.Item>
@@ -299,37 +306,35 @@ export default function EditProfileModal({
         <Form.Item
           label="Confirmar Nova Senha"
           name="confirmPassword"
-          dependencies={['newPassword']}
+          dependencies={["newPassword"]}
           rules={[
             ({ getFieldValue }) => ({
               validator(_, value) {
-                if (getFieldValue('newPassword') && !value) {
-                  return Promise.reject('Confirme sua nova senha');
+                if (getFieldValue("newPassword") && !value) {
+                  return Promise.reject("Confirme sua nova senha");
                 }
-                if (getFieldValue('newPassword') !== value) {
-                  return Promise.reject('As senhas não coincidem');
+                if (getFieldValue("newPassword") !== value) {
+                  return Promise.reject("As senhas não coincidem");
                 }
                 return Promise.resolve();
               },
             }),
           ]}
         >
-          <Input.Password 
-            prefix={<LockOutlined />} 
-            placeholder="Confirme sua nova senha" 
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Confirme sua nova senha"
             size="large"
           />
         </Form.Item>
 
         {/* Actions */}
-        <Form.Item style={{ marginBottom: 0, marginTop: '24px' }}>
-          <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-            <Button onClick={handleModalCancel}>
-              Cancelar
-            </Button>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
+        <Form.Item style={{ marginBottom: 0, marginTop: "24px" }}>
+          <Space style={{ width: "100%", justifyContent: "flex-end" }}>
+            <Button onClick={handleModalCancel}>Cancelar</Button>
+            <Button
+              type="primary"
+              htmlType="submit"
               loading={loading}
               size="large"
             >
